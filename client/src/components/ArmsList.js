@@ -1,15 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { css } from '@emotion/core'
 import styled from '@emotion/styled'
+import WS from 'webSocketService'
 
 
 const ArmComponent = (props) => {
-  const selected = props.selected === props.arm.id
+  const selected = props.selected === props.arm.arm_id
   return (
     <Arm selected={selected} onClick={props.onClick}>
       <div>
-        <ArmId>{props.arm.id}</ArmId>
-        <Address>{props.arm.address}</Address>
+        <ArmId>{props.arm.arm_id}</ArmId>
+        <Address>{props.arm.arm_address}</Address>
       </div>
       <Buttons>
         <StartBtn src={require(`assets/start.svg`)} />
@@ -20,24 +21,25 @@ const ArmComponent = (props) => {
   )
 }
 
+
 const ArmsListComponent = () => {
   const [selected, setSelected] = useState(null)
+  const [arms, setArms] = useState([])
 
-  const arms = [{
-    id: 'ARM001',
-    address: 'https://dizzying-woodcock-7809.dataplicity.io'
-  },{
-    id: 'ARM002',
-    address: 'https://dizzying-woodcock-7809.dataplicity.io'
-  },{
-    id: 'ARM003',
-    address: 'https://dizzying-woodcock-7809.dataplicity.io'
-  }]
+  useEffect(() => {
+    const initWebSocket = async () => {
+      await WS.connect()
+      WS.addCallbacks([{ command: 'fetch_arms', fn: setArms }])
+      WS.fetchArms()
+    }
+    initWebSocket(setArms)
+  }, [])
+
   return (
     <ArmsList>
       {arms.map(arm => (
         <ArmComponent
-          key={arm.id}
+          key={arm.arm_id}
           arm={arm}
           selected={selected}
           onClick={() => setSelected(arm.id)}
@@ -113,10 +115,6 @@ const Buttons = styled.div`
 const StartBtn = styled.img`
   width: 18px;
   height: 18px;
-`
-
-const armStatusSelected = (props) => css`
-  background-color: ${props.theme.colors.darkPrimary};
 `
 
 const Status = styled.div(props => css`
