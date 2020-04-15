@@ -27,6 +27,8 @@ export default {
         case 'buttonInset':
           layers = 5; maxDist = 0; maxBlur = 3; maxOpacity = 0.1; isInset = true; reverseOpacity = false
           break
+        default:
+          break
       }
     } else {
       ({ layers, maxDist, maxBlur, maxOpacity, isInset, reverseOpacity } = shadowType)

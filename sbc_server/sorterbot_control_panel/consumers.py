@@ -1,11 +1,7 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from asgiref.sync import async_to_sync
-
+from channels.exceptions import StopConsumer
 from sorterbot_control_panel import models
-from .models import Arm, Session
 from .ecs import ECSManager
 
 
@@ -19,7 +15,11 @@ class SBCConsumer(WebsocketConsumer):
         self.accept()
 
     def disconnect(self, close_code):
-        self.channel_layer.group_discard('default', self.channel_name)
+        if not hasattr(self, 'groups'):
+            return
+        for group in self.groups:
+            self.channel_layer.group_discard(group, self.channel_name)
+        raise StopConsumer()
 
     def receive(self, text_data):
         data = json.loads(text_data)
@@ -45,8 +45,17 @@ class SBCConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps(content))
 
     def arm_added(self, event):
-        print('arm_added')
         self.fetch_arms()
+
+    def status_changed(self, event):
+        print(json.dumps({
+            "command": "cloud_status",
+            "status": event["status"]
+        }))
+        self.send(text_data=json.dumps({
+            "command": "cloud_status",
+            "status": event["status"]
+        }))
 
     def fetch_arms(self):
         arms = models.Arm.objects.all()

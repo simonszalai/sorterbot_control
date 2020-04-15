@@ -85,37 +85,14 @@ const HeaderComponent = () => {
     const initWebSocket = async () => {
       await WS.connect()
       WS.addCallbacks([
-        { command: 'cloud_start', fn: (publicIp) => cloudStartCallback(publicIp) },
-        { command: 'cloud_stop', fn: () => cloudStopCallback() },
-        { command: 'cloud_status', fn: (status) => cloudStatusCallback(status) },
+        { command: 'cloud_start', fn: (publicIp) => fadeChangeStatus(publicIp) },
+        { command: 'cloud_stop', fn: () => fadeChangeStatus('off') },
+        { command: 'cloud_status', fn: (status) => fadeChangeStatus(status) },
       ])
       WS.getCloudStatus()
     }
     initWebSocket()
   }, [])
-
-  const cloudStartCallback = (publicIp) => {
-    fadeChangeStatus(publicIp)
-    // localStorage.setItem('cloudStatus', 'undefined')
-  }
-
-  const cloudStopCallback = () => {
-    fadeChangeStatus('off')
-    // localStorage.setItem('cloudStatus', 'undefined')
-  }
-
-  const cloudStatusCallback = (status) => {
-    fadeChangeStatus(status)
-    // const localStatus = localStorage.getItem('cloudStatus')
-    // // localStorage.setItem('cloudStatus', 'undefined')
-    // console.log("cloudStatusCallback -> localStatus", localStatus)
-    // // localStorage stringifies data, so this comparison is needed
-    // if (localStatus !== 'undefined') {
-    //   fadeChangeStatus(localStatus)
-    // } else {
-    //   fadeChangeStatus(status)
-    // }
-  }
 
   const fadeChangeStatus = (newStatus) => {
     setFaded(true)

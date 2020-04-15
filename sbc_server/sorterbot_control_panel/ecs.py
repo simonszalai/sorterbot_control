@@ -1,5 +1,6 @@
 import boto3
 from time import sleep
+from .models import UI
 
 
 class ECSManager:
@@ -19,20 +20,25 @@ class ECSManager:
         self.service = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"][0]
 
     def status(self):
-        taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
-        print(taskArns)
-        is_online = len(taskArns) > 0
-
-        if is_online:
-            return self.get_public_ip(taskArns)
+        all_status = UI.objects.all()
+        if len(all_status) > 0:
+            return all_status[0].cloud_status
         else:
+            taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
+            if len(taskArns) > 0:
+                return self.get_public_ip(taskArns)
             return "off"
 
     def start(self):
         print("Turning on...")
+        UI(id=1, cloud_status="startLoading").save()
+
         # Update desired task count
         self.ecs_client.update_service(cluster=self.cluster, service=self.service, desiredCount=1)
         print("Service desired task count updated!")
+
+        serviceDescriptions = self.ecs_client.describe_services(cluster=self.cluster, services=[self.service])["services"]
+        print(serviceDescriptions[0]["desiredCount"])
 
         tasks_count = 0
         waited = 0
@@ -49,8 +55,8 @@ class ECSManager:
         # Wait for Task to start
         self.on_waiter.wait(cluster=self.cluster, tasks=[taskArns[0]])
         print("Task started.")
-
-        return self.get_public_ip(taskArns)
+        public_ip = self.get_public_ip(taskArns)
+        UI(id=1, cloud_status=public_ip).save()
 
     def get_public_ip(self, taskArns):
         # Retrieve Network Interface ID from given Task
@@ -61,14 +67,21 @@ class ECSManager:
         # Retrieve Public IP from given Network Interface ID
         network_interfaces = self.ec2_client.describe_network_interfaces(NetworkInterfaceIds=[network_interface_id])["NetworkInterfaces"]
         public_ip = network_interfaces[0]["Association"]["PublicIp"]
-        print(public_ip)
+
         return public_ip
 
     def stop(self):
         print("Turning off...")
+
         self.ecs_client.update_service(cluster=self.cluster, service=self.service, desiredCount=0)
         print("Service desired task count updated!")
+
+        serviceDescriptions = self.ecs_client.describe_services(cluster=self.cluster, services=[self.service])["services"]
+        print(serviceDescriptions[0]["desiredCount"])
+
+        UI(id=1, cloud_status="stopLoading").save()
 
         taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
         self.off_waiter.wait(cluster=self.cluster, tasks=[taskArns[0]])
         print("Task stopped.")
+        UI(id=1, cloud_status="off").save()

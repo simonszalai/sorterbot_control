@@ -8,9 +8,8 @@ from . import views
 router = routers.DefaultRouter()
 router.register('arms', views.ArmViewSet)
 router.register('sessions', views.SessionViewSet)
+router.register('ui', views.UIViewSet)
 
-# Wire up our API using automatic URL routing.
-# Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     path('', views.index, name='index'),
     path('api/', include(router.urls)),

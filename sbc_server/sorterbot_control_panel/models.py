@@ -21,3 +21,7 @@ class Session(models.Model):
     after_img_url = models.CharField(max_length=300)
     logs_base_url = models.CharField(max_length=300)
     log_filenames = models.TextField()
+
+
+class UI(models.Model):
+    cloud_status = models.CharField(max_length=20)
