@@ -1,31 +1,152 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import ClipLoader from "react-spinners/ClipLoader"
 import styled from '@emotion/styled'
 
+import WS from 'webSocketService'
 
-const onRunningChange = (running, setRunning, setFaded) => {
-  setFaded(true)
-  setTimeout(() => {
-    setRunning(!running)
-    setFaded(false)
-  }, 500)
+
+const CloudStatusComponent = (props) => {
+  switch (props.cloudStatus) {
+    case 'startLoading':
+      return (
+        <CloudStatusWrapper faded={props.faded}>
+          <Text>
+            <Span>SorterBot Cloud is starting...</Span>
+          </Text>
+          <ClipLoader
+            css={{ marginLeft: 15 }}
+            size={20}
+            color={"#fff"}
+            loading={true}
+          />
+        </CloudStatusWrapper>
+      )
+    case 'stopLoading':
+      return (
+        <CloudStatusWrapper faded={props.faded}>
+          <Text>
+            <Span>SorterBot Cloud is shutting down...</Span>
+          </Text>
+          <ClipLoader
+            css={{ marginLeft: 15 }}
+            size={20}
+            color={"#fff"}
+            loading={true}
+          />
+        </CloudStatusWrapper>
+      )
+    case 'off':
+      return (
+        <CloudStatusWrapper faded={props.faded}>
+          <Text>
+            <Span>Start SorterBot Cloud</Span>
+          </Text>
+          <Btn
+            onClick={props.startCloud}
+            src={require('assets/start_white.svg')}
+          />
+        </CloudStatusWrapper>
+      )
+    case 'loading':
+      return (
+        <CloudStatusWrapper faded={props.faded}>
+          <Text>
+            <Span>Loading SorterBot status...</Span>
+          </Text>
+          <ClipLoader
+            css={{ marginLeft: 15 }}
+            size={20}
+            color={"#fff"}
+            loading={true}
+          />
+        </CloudStatusWrapper>
+      )
+    default:
+      return (
+        <CloudStatusWrapper faded={props.faded}>
+          <Text>
+            <Span>SorterBot Cloud is running at: </Span>
+            {props.cloudStatus}
+          </Text>
+          <Btn
+            onClick={props.stopCloud}
+            src={require('assets/stop_white.svg')}
+          />
+        </CloudStatusWrapper>
+      )
+  }
 }
 
 const HeaderComponent = () => {
-  const [running, setRunning] = useState(false)
+  const [cloudStatus, setCloudStatus] = useState('loading')
   const [faded, setFaded] = useState(false)
+
+  useEffect(() => {
+    const initWebSocket = async () => {
+      await WS.connect()
+      WS.addCallbacks([
+        { command: 'cloud_start', fn: (publicIp) => cloudStartCallback(publicIp) },
+        { command: 'cloud_stop', fn: () => cloudStopCallback() },
+        { command: 'cloud_status', fn: (status) => cloudStatusCallback(status) },
+      ])
+      WS.getCloudStatus()
+    }
+    initWebSocket()
+  }, [])
+
+  const cloudStartCallback = (publicIp) => {
+    fadeChangeStatus(publicIp)
+    // localStorage.setItem('cloudStatus', 'undefined')
+  }
+
+  const cloudStopCallback = () => {
+    fadeChangeStatus('off')
+    // localStorage.setItem('cloudStatus', 'undefined')
+  }
+
+  const cloudStatusCallback = (status) => {
+    fadeChangeStatus(status)
+    // const localStatus = localStorage.getItem('cloudStatus')
+    // // localStorage.setItem('cloudStatus', 'undefined')
+    // console.log("cloudStatusCallback -> localStatus", localStatus)
+    // // localStorage stringifies data, so this comparison is needed
+    // if (localStatus !== 'undefined') {
+    //   fadeChangeStatus(localStatus)
+    // } else {
+    //   fadeChangeStatus(status)
+    // }
+  }
+
+  const fadeChangeStatus = (newStatus) => {
+    setFaded(true)
+    setTimeout(() => {
+      setCloudStatus(newStatus)
+      setFaded(false)
+    }, 500)
+  }
+
+  const startCloud = () => {
+    WS.startCloud()
+    fadeChangeStatus('startLoading')
+    localStorage.setItem('cloudStatus', 'startLoading')
+  }
+
+  const stopCloud = () => {
+    WS.stopCloud()
+    fadeChangeStatus('stopLoading')
+    localStorage.setItem('cloudStatus', 'stopLoading')
+  }
+
   return (
     <Wrapper>
       <Header>
         <Logo src={require('assets/logo.png')} />
         <Right>
-          <Text faded={faded}>
-            <Span faded={faded}>{running ? 'SorterBot Cloud is running at: ' : 'Start sorterBot Cloud'}</Span>
-            {running ? 'http://56.3.63.98:6000' : ''}
-          </Text>
-          <Btn
+          <CloudStatusComponent
             faded={faded}
-            onClick={() => onRunningChange(running, setRunning, setFaded)}
-            src={require(`assets/${running ? 'stop' : 'start'}_white.svg`)}
+            cloudStatus={cloudStatus}
+            startCloud={startCloud}
+            stopCloud={stopCloud}
           />
         </Right>
       </Header>
@@ -90,6 +211,14 @@ const Btn = styled.img`
   cursor: pointer;
   margin-left: 15px;
   width: 16px;
+  transition: opacity 0.5s ease-in-out;
+  opacity: ${props => props.faded ? 0 : 1};
+`
+
+const CloudStatusWrapper = styled.div`
+  align-items: center;
+  display: flex;
+  flex-direction: row;
   transition: opacity 0.5s ease-in-out;
   opacity: ${props => props.faded ? 0 : 1};
 `

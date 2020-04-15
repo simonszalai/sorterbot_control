@@ -11,7 +11,6 @@ class Arm(models.Model):
         super(Arm, self).save(*args, **kwargs)
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)('default', {'type': 'arm.added'})
-        print("sent")
 
 
 class Session(models.Model):

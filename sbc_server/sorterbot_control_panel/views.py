@@ -2,7 +2,6 @@ from django.http import HttpResponse
 from rest_framework import viewsets
 from .models import Arm, Session
 from .serializers import ArmSerializer, SessionSerializer
-from .consumers import SBCConsumer
 
 
 def index(request):
@@ -12,11 +11,6 @@ def index(request):
 class ArmViewSet(viewsets.ModelViewSet):
     queryset = Arm.objects.all()
     serializer_class = ArmSerializer
-
-    def create(self, request):
-        data = request.data
-
-        return super().create(request)
 
 
 class SessionViewSet(viewsets.ModelViewSet):

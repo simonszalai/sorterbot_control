@@ -8,6 +8,7 @@ import Header from 'components/Header'
 import ArmsList from 'components/ArmsList'
 import SessionsList from 'components/SessionsList'
 
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -45,7 +46,8 @@ const Main = styled.div`
   padding-right: 15px;
   position: relative;
   width: 70vw;
-  height: 50vh;
+  min-height: 50vh;
+  max-height: 60vh;
   z-index: 10;
   ${props => props.theme.shadow('box')}
 `

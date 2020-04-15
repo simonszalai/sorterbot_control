@@ -1,25 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { css } from '@emotion/core'
 import styled from '@emotion/styled'
+import Fade from 'react-reveal/Fade'
 import WS from 'webSocketService'
-
-
-const ArmComponent = (props) => {
-  const selected = props.selected === props.arm.arm_id
-  return (
-    <Arm selected={selected} onClick={props.onClick}>
-      <div>
-        <ArmId>{props.arm.arm_id}</ArmId>
-        <Address>{props.arm.arm_address}</Address>
-      </div>
-      <Buttons>
-        <StartBtn src={require(`assets/start.svg`)} />
-        <Status selected={selected} />
-      </Buttons>
-      <Border selected={selected} />
-    </Arm>
-  )
-}
 
 
 const ArmsListComponent = () => {
@@ -32,19 +15,32 @@ const ArmsListComponent = () => {
       WS.addCallbacks([{ command: 'fetch_arms', fn: setArms }])
       WS.fetchArms()
     }
-    initWebSocket(setArms)
+    initWebSocket()
   }, [])
 
   return (
     <ArmsList>
-      {arms.map(arm => (
-        <ArmComponent
-          key={arm.arm_id}
-          arm={arm}
-          selected={selected}
-          onClick={() => setSelected(arm.id)}
-        />)
-      )}
+      <Fade cascade duration={500} distance="3px">
+        <div>
+          {arms.map(arm => (
+            <Arm
+              selected={selected}
+              onClick={() => setSelected(arm.id)}
+              key={arm.arm_id}
+            >
+              <div>
+                <ArmId>{arm.arm_id}</ArmId>
+                <Address>{arm.arm_address}</Address>
+              </div>
+              <Buttons>
+                <StartBtn src={require(`assets/start.svg`)} />
+                <Status selected={selected} />
+              </Buttons>
+              <Border selected={selected} />
+            </Arm>
+          ))}
+        </div>
+      </Fade>
     </ArmsList>
   )
 }
