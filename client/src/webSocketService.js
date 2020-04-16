@@ -13,9 +13,25 @@ class WebSocketService {
         this.callbacks = {}
     }
 
+    waitForSocketConnection = async () => {
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        while (this.socket.readyState !== 1) {
+            await sleep(200)
+        }
+    }
+
     async connect() {
         const path = 'ws://localhost:8000/websocket/'
+
+        if (this.socket !== null) {
+            await this.waitForSocketConnection()
+            return
+        }
+
         this.socket = new WebSocket(path)
+        // this.waitForSocketConnection()
 
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -70,6 +86,13 @@ class WebSocketService {
         this.sendMessage({ command: 'cloud_stop' })
     }
 
+    startSession(armId) {
+        this.sendMessage({
+            command: 'start_session',
+            armId: armId
+        })
+    }
+
 
     // Receive Messages
     onNewMessage(data) {
@@ -88,6 +111,9 @@ class WebSocketService {
         }
         if (command === 'cloud_stop') {
             this.callbacks[command]()
+        }
+        if (command === 'arm_conn_status') {
+            this.callbacks[command](parsedData.armId, parsedData.cloudConnectSuccess)
         }
     }
 

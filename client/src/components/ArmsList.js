@@ -5,24 +5,37 @@ import Fade from 'react-reveal/Fade'
 import WS from 'webSocketService'
 
 
-const ArmsListComponent = () => {
+const ArmsListComponent = (props) => {
   const [selected, setSelected] = useState(null)
   const [arms, setArms] = useState([])
+  const [blinkingArms, setBlinkingArms] = useState({})
 
   useEffect(() => {
     const initWebSocket = async () => {
       await WS.connect()
-      WS.addCallbacks([{ command: 'fetch_arms', fn: setArms }])
+      WS.addCallbacks([
+        { command: 'fetch_arms', fn: setArms },
+        { command: 'arm_conn_status', fn: ArmConnStatusCallback },
+      ])
       WS.fetchArms()
     }
     initWebSocket()
   }, [])
 
+  const ArmConnStatusCallback = (armId, armConnStatus) => {
+    setBlinkingArms({ ...blinkingArms, [armId]: armConnStatus ? 'ok' : 'dc' })
+    setTimeout(() => {
+      setBlinkingArms({ ...blinkingArms, [armId]: false })
+    }, 3000)
+  }
+
   return (
     <ArmsList>
       <Fade cascade duration={500} distance="3px">
         <div>
-          {arms.map(arm => (
+          {arms.map(arm => {
+            console.log(blinkingArms[arm.arm_id])
+            return (
             <Arm
               selected={selected}
               onClick={() => setSelected(arm.id)}
@@ -30,15 +43,15 @@ const ArmsListComponent = () => {
             >
               <div>
                 <ArmId>{arm.arm_id}</ArmId>
-                <Address>{arm.arm_address}</Address>
+                <LastOnline>{arm.last_online}</LastOnline>
               </div>
               <Buttons>
-                <StartBtn src={require(`assets/start.svg`)} />
-                <Status selected={selected} />
+                  <StartBtn src={require(`assets/start.svg`)} onClick={() => WS.startSession(arm.arm_id)} />
+                <Status selected={selected} blink={blinkingArms[arm.arm_id]} />
               </Buttons>
               <Border selected={selected} />
             </Arm>
-          ))}
+          )})}
         </div>
       </Fade>
     </ArmsList>
@@ -97,7 +110,7 @@ const ArmId = styled.div`
   z-index: 10;
 `
 
-const Address = styled.div`
+const LastOnline = styled.div`
   font-family: Tahoma, Verdana, Segoe, sans-serif;
   font-size: 11px;
   line-height: 13px;
@@ -111,10 +124,14 @@ const Buttons = styled.div`
 const StartBtn = styled.img`
   width: 18px;
   height: 18px;
+  cursor: pointer;
 `
 
 const Status = styled.div(props => css`
-  background-color: ${props.selected ? props.theme.colors.darkPrimary : props.theme.colors.primary};
+  // background-color: ${props.selected ? props.theme.colors.darkPrimary : props.theme.colors.primary};
+  background-color: #bbb;
+  ${props.blink === 'ok' ? `background-color: ${props.theme.colors.primary};` : ''}
+  ${props.blink === 'dc' ? `background-color: ${props.theme.colors.warning};` : ''}
   border-radius: 100px;
   box-shadow: inset 0 0 3px 0 rgba(51, 51, 51, 0.48);
   height: 18px;
@@ -123,18 +140,19 @@ const Status = styled.div(props => css`
   min-width: 18px;
   width: 18px;
   transition: all 0.15s ease-in-out;
-  animation: 3s linear infinite blink;
+  ${props.blink ? 'animation: 3s ease-out blink' : ''};
   @keyframes blink {
     from {
-      background-color: #fff;
+      background-color: #bbb;
     }
   
     10% {
-      background-color: ${props.selected ? props.theme.colors.darkPrimary : props.theme.colors.primary};
+      ${props.blink === 'ok' ? `background-color: ${props.theme.colors.primary};` : ''}
+      ${props.blink === 'dc' ? `background-color: ${props.theme.colors.warning};` : ''}
     }
   
     to {
-      background-color: #fff;
+      background-color: #bbb;
     }
   }
 `)

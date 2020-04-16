@@ -5,7 +5,8 @@ export default {
     primary: '#30b90e',
     darkPrimary: '#115201',
     pressed: '#fafafa',
-    dark: '#2e2e2e'
+    dark: '#2e2e2e',
+    warning: '#db8c0d'
   },
   shadow: (shadowType) => {
     // { layers: 5, maxDist: 2.5, maxBlur: 3, maxOpacity: 0.12, isInset: false, reverseOpacity: false }

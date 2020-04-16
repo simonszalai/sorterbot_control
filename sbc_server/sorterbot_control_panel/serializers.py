@@ -5,7 +5,7 @@ from .models import Arm, Session, UI
 class ArmSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Arm
-        fields = ["arm_id", "arm_address"]
+        fields = ["arm_id", "last_online"]
 
 
 class SessionSerializer(serializers.HyperlinkedModelSerializer):

@@ -4,8 +4,8 @@ from asgiref.sync import async_to_sync
 
 
 class Arm(models.Model):
-    arm_id = models.CharField(max_length=20)
-    arm_address = models.CharField(max_length=200)
+    arm_id = models.CharField(max_length=20, primary_key=True)
+    last_online = models.DateTimeField()
 
     def save(self, *args, **kwargs):
         super(Arm, self).save(*args, **kwargs)
@@ -25,3 +25,4 @@ class Session(models.Model):
 
 class UI(models.Model):
     cloud_status = models.CharField(max_length=20)
+    start_session = models.BooleanField(default=False)
