@@ -16,12 +16,12 @@ class Arm(models.Model):
 
 class Session(models.Model):
     arm = models.ForeignKey(Arm, on_delete=models.CASCADE)
-    session_id = models.CharField(max_length=20)
-    status = models.CharField(max_length=20)
-    before_img_url = models.CharField(max_length=300)
-    after_img_url = models.CharField(max_length=300)
-    logs_base_url = models.CharField(max_length=300)
-    log_filenames = models.TextField()
+    session_id = models.CharField(max_length=40)
+    status = models.CharField(max_length=20, blank=True)
+    before_img_url = models.CharField(max_length=300, blank=True)
+    after_img_url = models.CharField(max_length=300, blank=True)
+    logs_base_url = models.CharField(max_length=300, blank=True)
+    log_filenames = models.TextField(blank=True)
 
 
 class UI(models.Model):

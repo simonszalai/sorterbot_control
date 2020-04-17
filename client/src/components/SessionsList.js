@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import { css } from '@emotion/core'
+import WS from 'webSocketService'
 
 
 const onButtonClick = (e, label, setSelected) => {
@@ -36,7 +37,7 @@ const SessionComponent = (props) => {
       <Header isExpanded={isExpanded}>
         <div>
           <SessionId>Session ID</SessionId>
-          <StartTime>{props.session.id}</StartTime>
+          <StartTime>{props.session.session_id}</StartTime>
         </div>
         <Status>{props.session.status}</Status>
         <Dropdown
@@ -65,10 +66,19 @@ const SessionComponent = (props) => {
 }
 
 const SessionsListComponent = () => {
-  const sessions = [{
-    id: '2020.04.05 21:54:09',
-    status: 'Completed'
-  }]
+  const [sessions, setSessions] = useState([])
+  console.log("SessionsListComponent -> sessions", sessions)
+
+  useEffect(() => {
+    WS.connect()
+    WS.addCallbacks(SessionComponent.name, [
+      { command: 'fetch_sessions_of_arm', fn: (data) => setSessions(data.sessions) },
+    ])
+    WS.waitForSocketConnection(SessionComponent.name, () => {
+        WS.sendMessage({ command: 'fetch_arms' })
+    })
+  }, [])
+
   return (
     <SessionsList>
       {sessions.map(session => <SessionComponent key={SessionId} session={session} />)}
@@ -83,7 +93,7 @@ export default SessionsListComponent
 const SessionsList = styled.div`
   flex: 0 0 auto;
   overflow: auto;
-  padding: 30px 15px;
+  padding: 15px;
   position: relative;
   width: 300px;
   z-index: 10;
@@ -99,7 +109,7 @@ const Session = styled.div(props => css`
   overflow: hidden;
   flex-direction: column;
   justify-content: flex-start;
-  margin-bottom: 15px;
+  margin: 15px 0;
   position: relative;
   ${props.theme.borders.base}
   ${props.theme.shadow('innerBox')}
@@ -137,7 +147,7 @@ const SessionId = styled.div`
   font-family: Ubuntu, Helvetica, sans-serif;
   font-size: 17px;
   line-height: 18px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   margin-top: 0px;
 `
 
@@ -166,7 +176,7 @@ const Status = styled.div`
   position: absolute;
   right: 11px;
   text-transform: uppercase;
-  top: 16px;
+  top: 15px;
 `
 
 const expandedBody = () => css`

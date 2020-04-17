@@ -11,7 +11,7 @@ class ArmSerializer(serializers.HyperlinkedModelSerializer):
 class SessionSerializer(serializers.HyperlinkedModelSerializer):
     arm = serializers.SlugRelatedField(
         queryset=Arm.objects.all(),
-        slug_field="id"
+        slug_field="arm_id"
     )
 
     class Meta:

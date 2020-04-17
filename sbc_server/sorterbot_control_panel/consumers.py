@@ -2,6 +2,7 @@ import json
 from channels.generic.websocket import WebsocketConsumer
 from channels.exceptions import StopConsumer
 from django.core.serializers.json import DjangoJSONEncoder
+from django.forms.models import model_to_dict
 
 from sorterbot_control_panel import models
 from .ecs import ECSManager
@@ -21,7 +22,6 @@ class SBCConsumer(WebsocketConsumer):
             return
         for group in self.groups:
             self.channel_layer.group_discard(group, self.channel_name)
-        raise StopConsumer()
 
     def receive(self, text_data):
         data = json.loads(text_data)
@@ -32,6 +32,12 @@ class SBCConsumer(WebsocketConsumer):
             arms_list = self.fetch_arms()
             content["arms"] = arms_list
             self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))  # DjangoJSONEncoder to serialize Datetime properly
+
+        elif command == "fetch_sessions_of_arm":
+            sessions = self.fetch_sessions_of_arm(data["armId"])
+            print(sessions)
+            content["sessions"] = sessions
+            self.send(text_data=json.dumps(content))
 
         elif command == "cloud_status":
             content["status"] = self.ecsManager.status()
@@ -71,10 +77,8 @@ class SBCConsumer(WebsocketConsumer):
 
     def fetch_arms(self):
         arms = models.Arm.objects.all()
-        arms_list = []
-        for arm in arms:
-            arms_list.append({
-                "arm_id": arm.arm_id,
-                "last_online": arm.last_online
-            })
-        return arms_list
+        return [model_to_dict(arm) for arm in arms]
+
+    def fetch_sessions_of_arm(self, arm_id):
+        sessions_of_arm = models.Session.objects.filter(arm=arm_id)
+        return [model_to_dict(session) for session in sessions_of_arm]

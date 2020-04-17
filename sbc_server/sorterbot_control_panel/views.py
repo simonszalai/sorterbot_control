@@ -61,6 +61,7 @@ def send_connection_status(request):
 
     # Get current UI object and convert it to dict
     ui_objects = UI.objects.all()
+    print(ui_objects)
     if len(ui_objects) > 0:
         current_UI = model_to_dict(UI.objects.all()[0])
     else:

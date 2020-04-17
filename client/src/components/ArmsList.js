@@ -13,11 +13,11 @@ const ArmsListComponent = (props) => {
   useEffect(() => {
     WS.connect()
     WS.addCallbacks(ArmsListComponent.name, [
-      { command: 'fetch_arms', fn: setArms },
-      { command: 'arm_conn_status', fn: ArmConnStatusCallback },
+      { command: 'fetch_arms', fn: (data) => setArms(data.arms) },
+      { command: 'arm_conn_status', fn: (data) => ArmConnStatusCallback(data.armId, data.cloudConnectSuccess) },
     ])
     WS.waitForSocketConnection(ArmsListComponent.name, () => {
-        WS.fetchArms()
+        WS.sendMessage({ command: 'fetch_arms' })
     })
   }, [])
 
@@ -28,28 +28,34 @@ const ArmsListComponent = (props) => {
     }, 3000)
   }
 
+  const onArmClick = (armId) => {
+    setSelected(armId)
+    WS.sendMessage({ command: 'fetch_sessions_of_arm', armId })
+  }
+
   return (
     <ArmsList>
       <Fade cascade duration={500} distance="3px">
         <div>
           {arms.map(arm => {
             return (
-            <Arm
-              selected={selected}
-              onClick={() => setSelected(arm.id)}
-              key={arm.arm_id}
-            >
-              <div>
-                <ArmId>{arm.arm_id}</ArmId>
-                <LastOnline>{arm.last_online}</LastOnline>
-              </div>
-              <Buttons>
-                  <StartBtn src={require(`assets/start.svg`)} onClick={() => WS.startSession(arm.arm_id)} />
-                <Status selected={selected} blink={blinkingArms[arm.arm_id]} />
-              </Buttons>
-              <Border selected={selected} />
-            </Arm>
-          )})}
+              <Arm
+                selected={selected}
+                onClick={() => onArmClick(arm.arm_id)}
+                key={arm.arm_id}
+              >
+                <div>
+                  <ArmId>{arm.arm_id}</ArmId>
+                  <LastOnline>{arm.last_online}</LastOnline>
+                </div>
+                <Buttons>
+                    <StartBtn src={require(`assets/start.svg`)} onClick={() => WS.sendMessage({ command: 'start_session', armId: arm.arm_id })} />
+                  <Status selected={selected} blink={blinkingArms[arm.arm_id]} />
+                </Buttons>
+                <Border selected={selected} />
+              </Arm>
+            )
+          })}
         </div>
       </Fade>
     </ArmsList>

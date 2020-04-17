@@ -69,51 +69,11 @@ class WebSocketService {
     }
   }
 
-  fetchArms() {
-    this.sendMessage({ command: 'fetch_arms' })
-  }
-
-  getCloudStatus() {
-    this.sendMessage({ command: 'cloud_status' })
-  }
-
-  startCloud() {
-    this.sendMessage({ command: 'cloud_start' })
-  }
-
-  stopCloud() {
-    this.sendMessage({ command: 'cloud_stop' })
-  }
-
-  startSession(armId) {
-    this.sendMessage({
-      command: 'start_session',
-      armId: armId
-    })
-  }
-
-
   // Receive Messages
   onNewMessage(data) {
     const parsedData = JSON.parse(data)
-    const command = parsedData.command
     if (Object.keys(this.callbacks).length === 0) return
-
-    if (command === 'fetch_arms') {
-      this.callbacks[command](parsedData.arms)
-    }
-    if (command === 'cloud_status') {
-      this.callbacks[command](parsedData.status)
-    }
-    if (command === 'cloud_start') {
-      this.callbacks[command](parsedData.publicIp)
-    }
-    if (command === 'cloud_stop') {
-      this.callbacks[command]()
-    }
-    if (command === 'arm_conn_status') {
-      this.callbacks[command](parsedData.armId, parsedData.cloudConnectSuccess)
-    }
+    this.callbacks[parsedData.command](parsedData)
   }
 
   sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
