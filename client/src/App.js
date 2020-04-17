@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ThemeProvider } from 'emotion-theming'
 import styled from '@emotion/styled'
 import 'App.css'
 
+import WS from 'webSocketService'
 import theme from './theme'
 import Header from 'components/Header'
 import ArmsList from 'components/ArmsList'
@@ -10,6 +11,10 @@ import SessionsList from 'components/SessionsList'
 
 
 function App() {
+  useEffect(()=>{
+    // WS.connect()
+  }, [])
+
   return (
     <ThemeProvider theme={theme}>
       <Body>

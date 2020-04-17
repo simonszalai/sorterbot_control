@@ -81,17 +81,16 @@ const HeaderComponent = () => {
   const [cloudStatus, setCloudStatus] = useState('loading')
   const [faded, setFaded] = useState(false)
 
-  useEffect(() => {
-    const initWebSocket = async () => {
-      await WS.connect()
-      WS.addCallbacks([
-        { command: 'cloud_start', fn: (publicIp) => fadeChangeStatus(publicIp) },
-        { command: 'cloud_stop', fn: () => fadeChangeStatus('off') },
-        { command: 'cloud_status', fn: (status) => fadeChangeStatus(status) },
-      ])
+  useEffect(()=>{
+    WS.connect()
+    WS.addCallbacks(HeaderComponent.name, [
+      { command: 'cloud_start', fn: (publicIp) => fadeChangeStatus(publicIp) },
+      { command: 'cloud_stop', fn: () => fadeChangeStatus('off') },
+      { command: 'cloud_status', fn: (status) => fadeChangeStatus(status) },
+    ])
+    WS.waitForSocketConnection(HeaderComponent.name, () => {
       WS.getCloudStatus()
-    }
-    initWebSocket()
+    })
   }, [])
 
   const fadeChangeStatus = (newStatus) => {

@@ -54,6 +54,7 @@
     "react-dom": "^16.13.1",
     "react-reveal": "^1.2.2",
     "react-spinners": "^0.8.1",
+    "reconnecting-websocket": "^4.4.0",
     "resolve": "1.15.0",
     "resolve-url-loader": "3.1.1",
     "sass-loader": "8.0.2",

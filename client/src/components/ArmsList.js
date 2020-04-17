@@ -11,15 +11,14 @@ const ArmsListComponent = (props) => {
   const [blinkingArms, setBlinkingArms] = useState({})
 
   useEffect(() => {
-    const initWebSocket = async () => {
-      await WS.connect()
-      WS.addCallbacks([
-        { command: 'fetch_arms', fn: setArms },
-        { command: 'arm_conn_status', fn: ArmConnStatusCallback },
-      ])
-      WS.fetchArms()
-    }
-    initWebSocket()
+    WS.connect()
+    WS.addCallbacks(ArmsListComponent.name, [
+      { command: 'fetch_arms', fn: setArms },
+      { command: 'arm_conn_status', fn: ArmConnStatusCallback },
+    ])
+    WS.waitForSocketConnection(ArmsListComponent.name, () => {
+        WS.fetchArms()
+    })
   }, [])
 
   const ArmConnStatusCallback = (armId, armConnStatus) => {
