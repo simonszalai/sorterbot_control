@@ -34,7 +34,6 @@ const ArmsListComponent = (props) => {
       <Fade cascade duration={500} distance="3px">
         <div>
           {arms.map(arm => {
-            console.log(blinkingArms[arm.arm_id])
             return (
             <Arm
               selected={selected}

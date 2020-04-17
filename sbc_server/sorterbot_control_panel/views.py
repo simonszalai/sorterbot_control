@@ -6,6 +6,7 @@ from channels.layers import get_channel_layer
 from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -46,15 +47,30 @@ def get_cloud_ip(request):
 @csrf_exempt
 @api_view(["POST"])
 def send_connection_status(request):
+    # Retrieve payload from request
     arm_id = json.loads(request.body)["arm_id"]
     cloud_connect_success = json.loads(request.body)["cloud_connect_success"]
+
+    # Send payload to frontend though channels
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("default", {
         "type": "arm.conn.status",
         "arm_id": arm_id,
         "cloud_connect_success": cloud_connect_success
     })
-    return Response(status=status.HTTP_200_OK)
+
+    # Get current UI object and convert it to dict
+    ui_objects = UI.objects.all()
+    if len(ui_objects) > 0:
+        current_UI = model_to_dict(UI.objects.all()[0])
+    else:
+        UI(start_session=False).save()
+
+    # Reset flag after command was sent
+    UI(start_session=False).save()
+
+    # Send back command to start (or not) a new session
+    return Response({"should_start_session": current_UI["start_session"]}, status=status.HTTP_200_OK)
 
 
 class ArmViewSet(viewsets.ModelViewSet):
@@ -82,15 +98,9 @@ class UIViewSet(viewsets.ModelViewSet):
     serializer_class = UISerializer
 
     def create(self, request):
-        """
-        Explicitly provide primary key (id) so the entry is updated, instead of a new being added
+        UI(**request.data).save()
 
-        """
-        current_UI = UI.objects.all()[0]
-        new_ui = UI(
-            id=request.data["id"],
-            cloud_status=request.data["cloud_status"] or current_UI.cloud_status,
-            start_session=request.data["start_session"] or current_UI.start_session
-        )
-        new_ui.save()
-        return Response(request.data, status=status.HTTP_201_CREATED)
+        # Get whole updated UI object and send it back with the response
+        updated_ui = model_to_dict(UI.objects.all()[0])
+
+        return Response(updated_ui, status=status.HTTP_200_OK)

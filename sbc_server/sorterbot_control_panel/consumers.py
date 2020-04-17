@@ -48,7 +48,7 @@ class SBCConsumer(WebsocketConsumer):
 
         elif command == "start_session":
             arm_id = data["armId"]
-            print(arm_id)
+            models.UI(start_session=True).save()
 
     def arm_added(self, event):
         content = {"command": "fetch_arms"}

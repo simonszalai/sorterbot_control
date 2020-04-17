@@ -31,7 +31,7 @@ class ECSManager:
 
     def start(self):
         print("Turning on...")
-        UI(id=1, cloud_status="startLoading").save()
+        UI(cloud_status="startLoading").save()
 
         # Update desired task count
         self.ecs_client.update_service(cluster=self.cluster, service=self.service, desiredCount=1)
@@ -56,7 +56,7 @@ class ECSManager:
         self.on_waiter.wait(cluster=self.cluster, tasks=[taskArns[0]])
         print("Task started.")
         public_ip = self.get_public_ip(taskArns)
-        UI(id=1, cloud_status=public_ip).save()
+        UI(cloud_status=public_ip).save()
 
     def get_public_ip(self, taskArns):
         # Retrieve Network Interface ID from given Task
@@ -79,9 +79,9 @@ class ECSManager:
         serviceDescriptions = self.ecs_client.describe_services(cluster=self.cluster, services=[self.service])["services"]
         print(serviceDescriptions[0]["desiredCount"])
 
-        UI(id=1, cloud_status="stopLoading").save()
+        UI(cloud_status="stopLoading").save()
 
         taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
         self.off_waiter.wait(cluster=self.cluster, tasks=[taskArns[0]])
         print("Task stopped.")
-        UI(id=1, cloud_status="off").save()
+        UI(cloud_status="off").save()

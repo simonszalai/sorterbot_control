@@ -25,13 +25,13 @@ class WebSocketService {
     async connect() {
         const path = 'ws://localhost:8000/websocket/'
 
+        // Avoid making a duplicate connection if another component started it already
         if (this.socket !== null) {
             await this.waitForSocketConnection()
             return
         }
 
         this.socket = new WebSocket(path)
-        // this.waitForSocketConnection()
 
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
