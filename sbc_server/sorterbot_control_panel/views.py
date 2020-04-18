@@ -11,7 +11,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .models import Arm, Session, UI
+from .models import Arm, Session, UI, Log
 from .serializers import ArmSerializer, SessionSerializer, UISerializer
 from .ecs import ECSManager
 
@@ -61,7 +61,6 @@ def send_connection_status(request):
 
     # Get current UI object and convert it to dict
     ui_objects = UI.objects.all()
-    print(ui_objects)
     if len(ui_objects) > 0:
         current_UI = model_to_dict(UI.objects.all()[0])
     else:
@@ -72,6 +71,34 @@ def send_connection_status(request):
 
     # Send back command to start (or not) a new session
     return Response({"should_start_session": current_UI["start_session"]}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(["POST"])
+def log(request):
+    new_log_args = {}
+    for field in Log._meta.get_fields():
+        args = json.loads(request.data["args"].replace("'", '"'))
+        # PK field 'id' does not exist in logger object, so skip it
+        if field.name == "id":
+            continue
+        # Retrieve 'log_type' from args
+        if field.name == "log_type":
+            new_log_args[field.name] = args[field.name]
+            continue
+        # Field 'arm' expects an Arm object, so retrieve it based on 'arm_id' from args
+        if field.name == "arm":
+            new_log_args[field.name] = Arm.objects.get(arm_id=args["arm_id"])
+            continue
+        # Field 'session' expects a Session object, so retrieve it based on 'session_id' from args
+        if field.name == "session":
+            new_log_args[field.name] = Session.objects.get(session_id=args["session_id"])
+            continue
+        new_log_args[field.name] = request.data[field.name]
+
+    Log(**new_log_args).save()
+
+    return Response(status=status.HTTP_200_OK)
 
 
 class ArmViewSet(viewsets.ModelViewSet):

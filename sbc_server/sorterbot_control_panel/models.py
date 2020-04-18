@@ -47,3 +47,16 @@ class UI(models.Model):
 
         # Save new UI object to DB
         super().save(*args, **kwargs)
+
+
+class Log(models.Model):
+    arm = models.ForeignKey(Arm, on_delete=models.CASCADE)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    log_type = models.CharField(max_length=40)
+    asctime = models.CharField(max_length=40)
+    created = models.CharField(max_length=40)
+    name = models.CharField(max_length=20)
+    levelname = models.CharField(max_length=10)
+    msg = models.TextField()
+    pathname = models.CharField(max_length=200)
+    lineno = models.CharField(max_length=10)

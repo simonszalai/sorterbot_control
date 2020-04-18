@@ -22,6 +22,9 @@ const ArmsListComponent = (props) => {
   }, [])
 
   const ArmConnStatusCallback = (armId, armConnStatus) => {
+    console.log("ArmConnStatusCallback -> armConnStatus", armConnStatus)
+    // console.log(blinkingArms[arm.arm_id])
+    console.log("ArmConnStatusCallback -> blinkingArms", blinkingArms)
     setBlinkingArms({ ...blinkingArms, [armId]: armConnStatus ? 'ok' : 'dc' })
     setTimeout(() => {
       setBlinkingArms({ ...blinkingArms, [armId]: false })

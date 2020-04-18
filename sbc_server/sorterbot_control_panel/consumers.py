@@ -35,7 +35,6 @@ class SBCConsumer(WebsocketConsumer):
 
         elif command == "fetch_sessions_of_arm":
             sessions = self.fetch_sessions_of_arm(data["armId"])
-            print(sessions)
             content["sessions"] = sessions
             self.send(text_data=json.dumps(content))
 
