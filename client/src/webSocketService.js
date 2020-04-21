@@ -16,9 +16,8 @@ class WebSocketService {
     this.socket = null
   }
 
-  addCallbacks(componentName, callbacks) {
+  addCallbacks(callbacks) {
     callbacks.forEach(callback => this.callbacks[callback.command] = callback.fn)
-    console.log(`Callbacks for '${componentName}' added successfully!`)
   }
 
 
@@ -28,7 +27,6 @@ class WebSocketService {
     setTimeout(
       () => {
         if (socket?.readyState === 1) {
-          console.log(`Initial functions for '${componentName}' executed successfully!`)
           if (callback != null) callback()
           return
         } else {
@@ -75,8 +73,6 @@ class WebSocketService {
     if (Object.keys(this.callbacks).length === 0) return
     this.callbacks[parsedData.command](parsedData)
   }
-
-  sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 }
 
 export default WebSocketService.getInstance()

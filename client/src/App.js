@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ThemeProvider } from 'emotion-theming'
 import styled from '@emotion/styled'
 import 'App.css'
@@ -8,11 +8,22 @@ import theme from './theme'
 import Header from 'components/Header'
 import ArmsList from 'components/ArmsList'
 import SessionsList from 'components/SessionsList'
+import Logs from 'components/Logs'
 
 
 function App() {
-  useEffect(()=>{
-    // WS.connect()
+  const [logs, setLogs] = useState([])
+  const [selectedArm, setSelectedArm] = useState(null)
+
+  useEffect(() => {
+    WS.connect()
+    WS.addCallbacks([{
+      command: 'fetch_logs', fn: (data) => {
+      console.log("App -> data", data)
+        setLogs(data.logs)
+        }
+    }])
+    WS.sendMessage({ command: 'set_open_logs', open_logs: 'none'})
   }, [])
 
   return (
@@ -20,8 +31,12 @@ function App() {
       <Body>
         <Header />
         <Main>
-          <ArmsList />
-          <SessionsList />
+          <ArmsList
+            selectedArm={selectedArm}
+            setSelectedArm={setSelectedArm}
+          />
+          <SessionsList selectedArm={selectedArm} />
+          <Logs logs={logs} />
         </Main>
       </Body>
     </ThemeProvider>
@@ -48,7 +63,6 @@ const Main = styled.div`
   margin-top: 75px;
   overflow: hidden;
   padding-left: 15px;
-  padding-right: 15px;
   position: relative;
   width: 70vw;
   min-height: 50vh;

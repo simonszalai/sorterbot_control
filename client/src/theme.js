@@ -56,6 +56,7 @@ export default {
   },
   borders: {
     base: css`border: 1px solid rgba(230, 230, 230, 1);`,
+    darker: css`border: 1px solid rgba(210, 210, 210, 1);`,
     invisible: css`border: 1px solid rgba(40, 40, 40, 0);`,
   }
 }

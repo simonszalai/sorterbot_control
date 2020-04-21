@@ -96,7 +96,24 @@ def log(request):
             continue
         new_log_args[field.name] = request.data[field.name]
 
+    # Save new log entry to Postgres
     Log(**new_log_args).save()
+
+    # Set enabled log types on Session to accurately enable/disable log type buttons on front-end
+    session = Session.objects.get(arm_id=args["arm_id"], session_id=args["session_id"])
+    current_logtypes = session.enabled_log_types.split(",")
+    new_logtypes = current_logtypes + [str(args["log_type"])]
+    no_dupl_logtypes = list(set(new_logtypes))
+    session.enabled_log_types = ",".join(no_dupl_logtypes)
+    session.save()
+
+    # Refresh sessions on front-end if there is a new log type
+    if not str(args["log_type"]) in current_logtypes:
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)("default", {
+            "type": "push.sessions.of.arm",
+            "arm_id": args["arm_id"]
+        })
 
     return Response(status=status.HTTP_200_OK)
 

@@ -4,36 +4,49 @@ import { css } from '@emotion/core'
 import WS from 'webSocketService'
 
 
-const onButtonClick = (e, label, setSelected) => {
-  e.stopPropagation()
-  setSelected(label)
-}
-
-const onSessionClick = (expandedId, sessionId, setExpandedId, setSelected) => {
-  const newExpanded = expandedId === sessionId ? null : sessionId
-  setExpandedId(newExpanded)
-  if (!newExpanded) setSelected(null)
-}
-
-const createButton = (label, selected, setSelected) => {
-  return (
-    <Btn
-      key={label}
-      onClick={(e) => onButtonClick(e, label, setSelected)}
-      selected={selected === label}
-    >
-      {label}
-    </Btn>)
-}
-
 const SessionComponent = (props) => {
-  const [selected, setSelected] = useState(null)
   const [expandedId, setExpandedId] = useState(null)
 
   const isExpanded = expandedId === props.session.id
   const logButtons = [1000, 1200, 1400, 1600, 1800]
+
+  const onButtonClick = (e, label) => {
+    e.stopPropagation()
+    props.setSelected([props.session.id, label])
+    WS.sendMessage({
+      command: 'fetch_logs',
+      arm_id: props.selectedArm,
+      sess_id: props.session.id,
+      log_type: label
+    })
+    WS.sendMessage({
+      command: 'set_open_logs',
+      open_logs: `${props.selectedArm}.${props.session.id}.${label}`
+    })
+  }
+
+  const onSessionClick = (expandedId, sessionId, setExpandedId) => {
+    const newExpanded = expandedId === sessionId ? null : sessionId
+    setExpandedId(newExpanded)
+    if (!newExpanded) props.setSelected([])
+  }
+  
+  const createButton = (label) => {
+    const disabled = !props.session.enabled_log_types?.split(',').includes(label.toString())
+    return (
+      <Btn
+        key={label}
+        onClick={(e) => onButtonClick(e, label)}
+        selected={props.selected[0] === props.session.id && props.selected[1] === label}
+        disabled={disabled}
+      >
+        {label}
+      </Btn>
+    )
+  }
+
   return (
-    <Session onClick={() => onSessionClick(expandedId, props.session.id, setExpandedId, setSelected)}>
+    <Session onClick={() => onSessionClick(expandedId, props.session.id, setExpandedId)}>
       <Header isExpanded={isExpanded}>
         <div>
           <SessionId>Session ID</SessionId>
@@ -49,15 +62,15 @@ const SessionComponent = (props) => {
         <BodyInner>
           <SectionTitle>Images</SectionTitle>
           <BtnWrapper>
-            {createButton('Before', selected, setSelected)}
-            {createButton('After', selected, setSelected)}
+            {createButton('Before')}
+            {createButton('After')}
           </BtnWrapper>
           <SectionTitle>Logs</SectionTitle>
           <BtnWrapper>
-            {logButtons.map(label => createButton(label, selected, setSelected))}
+            {logButtons.map(label => createButton(label))}
           </BtnWrapper>
           <BtnWrapper>
-            {createButton('Command Generation', selected, setSelected)}
+            {createButton('Command Generation')}
           </BtnWrapper>
         </BodyInner>
       </Body>
@@ -65,13 +78,13 @@ const SessionComponent = (props) => {
   )
 }
 
-const SessionsListComponent = () => {
+const SessionsListComponent = (props) => {
   const [sessions, setSessions] = useState([])
-  console.log("SessionsListComponent -> sessions", sessions)
+  const [selected, setSelected] = useState([])
 
   useEffect(() => {
     WS.connect()
-    WS.addCallbacks(SessionComponent.name, [
+    WS.addCallbacks([
       { command: 'fetch_sessions_of_arm', fn: (data) => setSessions(data.sessions) },
     ])
     WS.waitForSocketConnection(SessionComponent.name, () => {
@@ -81,7 +94,15 @@ const SessionsListComponent = () => {
 
   return (
     <SessionsList>
-      {sessions.map(session => <SessionComponent key={SessionId} session={session} />)}
+      {sessions.map(session => (
+        <SessionComponent
+          key={session.session_id}
+          session={session}
+          selectedArm={props.selectedArm}
+          selected={selected}
+          setSelected={setSelected}
+        />
+      ))}
     </SessionsList>
   )
 }
@@ -218,10 +239,10 @@ const btnSelected = (props) => css`
 
 const Btn = styled.button(props => css`
   align-items: center;
-  background-color: #fff;
+  background-color: ${props.disabled ? 'transparent' : '#fff'};
   border-radius: 3px;
-  color: #333;
-  cursor: pointer;
+  color: ${props.disabled ? '#aaa' : '#333'};
+  ${!props.disabled && 'cursor: pointer;'}
   display: flex;
   flex: 1;
   font-family: Montserrat, sans-serif;
@@ -233,8 +254,8 @@ const Btn = styled.button(props => css`
   padding: 0 4px;
   text-transform: uppercase;
   transition: all 0.15s ease-in-out;
-  ${props.theme.borders.base}
-  ${props.theme.shadow('button')}
+  ${props.disabled ? props.theme.borders.darker : props.theme.borders.base}
+  ${!props.disabled && props.theme.shadow('button')}
   ${props.selected ? btnSelected(props) : ''}
   & :hover {
     box-shadow: none;

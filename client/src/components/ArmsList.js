@@ -6,13 +6,12 @@ import WS from 'webSocketService'
 
 
 const ArmsListComponent = (props) => {
-  const [selected, setSelected] = useState(null)
   const [arms, setArms] = useState([])
   const [blinkingArms, setBlinkingArms] = useState({})
 
   useEffect(() => {
     WS.connect()
-    WS.addCallbacks(ArmsListComponent.name, [
+    WS.addCallbacks([
       { command: 'fetch_arms', fn: (data) => setArms(data.arms) },
       { command: 'arm_conn_status', fn: (data) => ArmConnStatusCallback(data.armId, data.cloudConnectSuccess) },
     ])
@@ -22,9 +21,6 @@ const ArmsListComponent = (props) => {
   }, [])
 
   const ArmConnStatusCallback = (armId, armConnStatus) => {
-    console.log("ArmConnStatusCallback -> armConnStatus", armConnStatus)
-    // console.log(blinkingArms[arm.arm_id])
-    console.log("ArmConnStatusCallback -> blinkingArms", blinkingArms)
     setBlinkingArms({ ...blinkingArms, [armId]: armConnStatus ? 'ok' : 'dc' })
     setTimeout(() => {
       setBlinkingArms({ ...blinkingArms, [armId]: false })
@@ -32,8 +28,14 @@ const ArmsListComponent = (props) => {
   }
 
   const onArmClick = (armId) => {
-    setSelected(armId)
+    props.setSelectedArm(armId)
     WS.sendMessage({ command: 'fetch_sessions_of_arm', armId })
+    WS.sendMessage({ command: 'set_open_logs', open_logs: 'none' })
+  }
+
+  const onStartSession = (e, armId) => {
+    e.stopPropagation()
+    WS.sendMessage({ command: 'start_session', armId })
   }
 
   return (
@@ -43,7 +45,7 @@ const ArmsListComponent = (props) => {
           {arms.map(arm => {
             return (
               <Arm
-                selected={selected}
+                selectedArm={props.selectedArm}
                 onClick={() => onArmClick(arm.arm_id)}
                 key={arm.arm_id}
               >
@@ -52,10 +54,10 @@ const ArmsListComponent = (props) => {
                   <LastOnline>{arm.last_online}</LastOnline>
                 </div>
                 <Buttons>
-                    <StartBtn src={require(`assets/start.svg`)} onClick={() => WS.sendMessage({ command: 'start_session', armId: arm.arm_id })} />
-                  <Status selected={selected} blink={blinkingArms[arm.arm_id]} />
+                    <StartBtn src={require(`assets/start.svg`)} onClick={(e) => onStartSession(e, arm.arm_id)} />
+                  <Status selected={props.selectedArm} blink={blinkingArms[arm.arm_id]} />
                 </Buttons>
-                <Border selected={selected} />
+                <Border selected={props.selectedArm} />
               </Arm>
             )
           })}
@@ -100,12 +102,12 @@ const Arm = styled.div(props => css`
   transition: all 0.3s ease-in-out;
   ${props.theme.borders.base}
   ${props.theme.shadow('innerBox')}
-  ${props.selected ? armSelected(props) : ''}
+  ${props.selectedArm ? armSelected(props) : ''}
   & :hover {
     box-shadow: none;
   }
   & :active {
-    background-color: ${props.selected ? props.theme.colors.darkPrimary : props.theme.colors.pressed};
+    background-color: ${props.selectedArm ? props.theme.colors.darkPrimary : props.theme.colors.pressed};
     ${props.theme.shadow('innerBoxInset')}
   }
 `)
@@ -135,7 +137,7 @@ const StartBtn = styled.img`
 `
 
 const Status = styled.div(props => css`
-  // background-color: ${props.selected ? props.theme.colors.darkPrimary : props.theme.colors.primary};
+  // background-color: ${props.selectedArm ? props.theme.colors.darkPrimary : props.theme.colors.primary};
   background-color: #bbb;
   ${props.blink === 'ok' ? `background-color: ${props.theme.colors.primary};` : ''}
   ${props.blink === 'dc' ? `background-color: ${props.theme.colors.warning};` : ''}
@@ -165,7 +167,7 @@ const Status = styled.div(props => css`
 `)
 
 const Border = styled.div`
-  background-color: ${props => props.selected ? props.theme.colors.darkPrimary : props.theme.colors.primary};
+  background-color: ${props => props.selectedArm ? props.theme.colors.darkPrimary : props.theme.colors.primary};
   bottom: 0%;
   height: 100%;
   left: 0%;

@@ -11,7 +11,7 @@ class Arm(models.Model):
     def save(self, *args, **kwargs):
         super(Arm, self).save(*args, **kwargs)
         channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)('default', {'type': 'arm.added'})
+        async_to_sync(channel_layer.group_send)("default", {"type": "arm.added"})
 
 
 class Session(models.Model):
@@ -22,11 +22,18 @@ class Session(models.Model):
     after_img_url = models.CharField(max_length=300, blank=True)
     logs_base_url = models.CharField(max_length=300, blank=True)
     log_filenames = models.TextField(blank=True)
+    enabled_log_types = models.TextField()
+
+    def save(self, *args, **kwargs):
+        super(Session, self).save(*args, **kwargs)
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)("default", {"type": "push.sessions.of.arm", "arm_id": self.arm.arm_id})
 
 
 class UI(models.Model):
     cloud_status = models.CharField(max_length=20)
     start_session = models.BooleanField(default=False)
+    open_logs = models.CharField(max_length=40, default="")
 
     def save(self, *args, **kwargs):
         # Always save to line 1
@@ -60,3 +67,22 @@ class Log(models.Model):
     msg = models.TextField()
     pathname = models.CharField(max_length=200)
     lineno = models.CharField(max_length=10)
+
+    def save(self, *args, **kwargs):
+        super(Log, self).save(*args, **kwargs)
+        open_logs = UI.objects.get(id=1).open_logs.split(".")
+
+        try:
+            if open_logs[0] == self.arm.arm_id and int(open_logs[1]) == self.session.id and int(open_logs[2]) == self.log_type:
+                print("PUSHING")
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    "default", {
+                        "type": "push.logs",
+                        "arm_id": self.arm.arm_id,
+                        "sess_id": self.session.id,
+                        "log_type": self.log_type
+                    }
+                )
+        except IndexError:
+            pass

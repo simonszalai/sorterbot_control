@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Arm, Session, UI
+from .models import Arm, Session, UI, Log
 
 
 class ArmSerializer(serializers.HyperlinkedModelSerializer):
@@ -26,3 +26,12 @@ class UISerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = UI
         fields = ["id", "cloud_status", "start_session"]
+
+
+class LogSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Log
+        fields = [
+            "arm", "session", "log_type", "asctime", "created", "name",
+            "levelname", "msg", "pathname", "lineno"
+        ]

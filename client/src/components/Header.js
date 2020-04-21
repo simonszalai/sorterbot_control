@@ -83,7 +83,7 @@ const HeaderComponent = () => {
 
   useEffect(()=>{
     WS.connect()
-    WS.addCallbacks(HeaderComponent.name, [
+    WS.addCallbacks([
       { command: 'cloud_start', fn: (data) => fadeChangeStatus(data.publicIp) },
       { command: 'cloud_stop', fn: () => fadeChangeStatus('off') },
       { command: 'cloud_status', fn: (data) => fadeChangeStatus(data.status) },
