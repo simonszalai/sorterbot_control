@@ -25,7 +25,6 @@ class SBCConsumer(WebsocketConsumer):
     def receive(self, text_data):
         data = json.loads(text_data)
         command = data["command"]
-        print(command)
         content = {"command": command}
 
         if command == "fetch_arms":
@@ -46,7 +45,8 @@ class SBCConsumer(WebsocketConsumer):
         elif command == "set_open_logs":
             UI(open_logs=data["open_logs"]).save()
 
-        elif command == "cloud_status":
+        elif command == "fetch_cloud_status":
+            content["command"] = "cloud_status"
             content["status"] = self.ecsManager.status()
             self.send(text_data=json.dumps(content))
 
@@ -72,7 +72,6 @@ class SBCConsumer(WebsocketConsumer):
     def push_logs(self, event):
         content = {"command": "fetch_logs"}
         logs = Log.objects.filter(arm=event["arm_id"], session=event["sess_id"], log_type=event["log_type"]).order_by("created")
-        print(logs)
         content["logs"] = [model_to_dict(log) for log in logs]
         self.send(text_data=json.dumps(content))
 
@@ -90,7 +89,7 @@ class SBCConsumer(WebsocketConsumer):
         }))
 
     def fetch_arms(self):
-        arms = Arm.objects.all()
+        arms = Arm.objects.all().order_by("arm_id")
         return [model_to_dict(arm) for arm in arms]
 
     def fetch_sessions_of_arm(self, arm_id):

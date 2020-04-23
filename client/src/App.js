@@ -19,7 +19,6 @@ function App() {
     WS.connect()
     WS.addCallbacks([{
       command: 'fetch_logs', fn: (data) => {
-      console.log("App -> data", data)
         setLogs(data.logs)
         }
     }])
@@ -55,7 +54,7 @@ const Body = styled.div`
   padding-bottom: 3vw;
 `
 
-const Main = styled.div`
+  const Main = styled.div`
   background-color: #fff;
   border-radius: 4px;
   display: flex;
@@ -69,4 +68,5 @@ const Main = styled.div`
   max-height: 60vh;
   z-index: 10;
   ${props => props.theme.shadow('box')}
+  transition: all 0.3s ease-in-out;
 `

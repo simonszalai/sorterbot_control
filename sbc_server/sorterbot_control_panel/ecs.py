@@ -1,6 +1,7 @@
 import boto3
 from time import sleep
-from .models import UI
+import channels.layers
+from asgiref.sync import async_to_sync
 
 
 class ECSManager:
@@ -19,26 +20,58 @@ class ECSManager:
         # Retrieve Services of given Cluster
         self.service = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"][0]
 
+        # Retrieve channel layer for real time messaging
+        self.channel_layer = channels.layers.get_channel_layer()
+
+        # # TODO: if server restarts after a task start button was clicked but before the task was added, this fails
+        # taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
+        # if len(taskArns) == 0:
+        #     pass
+        #     # UI(cloud_status="off").save()
+        # else:
+        #     tasksDescriptions = self.ecs_client.describe_tasks(cluster=self.cluster, tasks=taskArns)["tasks"]
+        #     if tasksDescriptions[0]["attachments"][0]["status"] == "RUNNING":
+        #         public_ip = self.get_public_ip(taskArns)
+        #         UI(cloud_status=public_ip).save()
+        #     else:
+        #         UI(cloud_status="startLoading").save()
+
+        async_to_sync(self.channel_layer.group_send)("default", {
+            "type": "status.changed",
+            "status": self.status()
+        })
+
     def status(self):
-        all_status = UI.objects.all()
-        if len(all_status) > 0:
-            return all_status[0].cloud_status
+        taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
+        desired_count = self.ecs_client.describe_services(cluster=self.cluster, services=[self.service])["services"][0]["desiredCount"]
+
+        if len(taskArns) == 0:
+            if desired_count == 0:
+                return "off"
+            else:
+                return "startLoading"
         else:
-            taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
-            if len(taskArns) > 0:
-                return self.get_public_ip(taskArns)
-            return "off"
+            tasksDescriptions = self.ecs_client.describe_tasks(cluster=self.cluster, tasks=taskArns)["tasks"]
+            if desired_count == 0:
+                return "stopLoading"
+            else:
+                if tasksDescriptions[0]["attachments"][0]["status"] == "RUNNING":
+                    return self.get_public_ip(taskArns)
+                else:
+                    return "startLoading"
 
     def start(self):
         print("Turning on...")
-        UI(cloud_status="startLoading").save()
+        # UI(cloud_status="startLoading").save()
 
         # Update desired task count
-        self.ecs_client.update_service(cluster=self.cluster, service=self.service, desiredCount=1)
+        desired_count = 0
+        while desired_count == 0:
+            print("Updating desired count...")
+            self.ecs_client.update_service(cluster=self.cluster, service=self.service, desiredCount=1)
+            desired_count = self.ecs_client.describe_services(cluster=self.cluster, services=[self.service])["services"][0]["desiredCount"]
+            sleep(1)
         print("Service desired task count updated!")
-
-        serviceDescriptions = self.ecs_client.describe_services(cluster=self.cluster, services=[self.service])["services"]
-        print(serviceDescriptions[0]["desiredCount"])
 
         tasks_count = 0
         waited = 0
@@ -56,7 +89,12 @@ class ECSManager:
         self.on_waiter.wait(cluster=self.cluster, tasks=[taskArns[0]])
         print("Task started.")
         public_ip = self.get_public_ip(taskArns)
-        UI(cloud_status=public_ip).save()
+        # UI(cloud_status=public_ip).save()
+
+        async_to_sync(self.channel_layer.group_send)("default", {
+            "type": "status.changed",
+            "status": public_ip
+        })
 
     def get_public_ip(self, taskArns):
         # Retrieve Network Interface ID from given Task
@@ -73,15 +111,26 @@ class ECSManager:
     def stop(self):
         print("Turning off...")
 
-        self.ecs_client.update_service(cluster=self.cluster, service=self.service, desiredCount=0)
+        desired_count = 1
+        while desired_count == 1:
+            print("Updating desired count...")
+            self.ecs_client.update_service(cluster=self.cluster, service=self.service, desiredCount=0)
+            desired_count = self.ecs_client.describe_services(cluster=self.cluster, services=[self.service])["services"][0]["desiredCount"]
+            sleep(1)
         print("Service desired task count updated!")
 
-        serviceDescriptions = self.ecs_client.describe_services(cluster=self.cluster, services=[self.service])["services"]
-        print(serviceDescriptions[0]["desiredCount"])
-
-        UI(cloud_status="stopLoading").save()
+        # UI(cloud_status="stopLoading").save()
+        async_to_sync(self.channel_layer.group_send)("default", {
+            "type": "status.changed",
+            "status": "stopLoading"
+        })
 
         taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
         self.off_waiter.wait(cluster=self.cluster, tasks=[taskArns[0]])
         print("Task stopped.")
-        UI(cloud_status="off").save()
+        # UI(cloud_status="off").save()
+
+        async_to_sync(self.channel_layer.group_send)("default", {
+            "type": "status.changed",
+            "status": "off"
+        })

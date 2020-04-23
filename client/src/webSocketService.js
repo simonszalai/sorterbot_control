@@ -21,7 +21,7 @@ class WebSocketService {
   }
 
 
-  waitForSocketConnection = (componentName, callback) => {
+  waitForSocketConnection = (callback) => {
     const socket = this.socket
     const recursion = this.waitForSocketConnection
     setTimeout(
@@ -30,7 +30,7 @@ class WebSocketService {
           if (callback != null) callback()
           return
         } else {
-          recursion(componentName, callback)
+          recursion(callback)
         }
       },
     1)

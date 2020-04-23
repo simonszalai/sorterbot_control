@@ -6,6 +6,18 @@ import WS from 'webSocketService'
 
 
 const CloudStatusComponent = (props) => {
+  const offComponent = (
+    <CloudStatusWrapper faded={props.faded}>
+      <Text>
+        <Span>Start SorterBot Cloud</Span>
+      </Text>
+      <Btn
+        onClick={props.startCloud}
+        src={require('assets/start_white.svg')}
+      />
+    </CloudStatusWrapper>
+  )
+
   switch (props.cloudStatus) {
     case 'startLoading':
       return (
@@ -36,17 +48,7 @@ const CloudStatusComponent = (props) => {
         </CloudStatusWrapper>
       )
     case 'off':
-      return (
-        <CloudStatusWrapper faded={props.faded}>
-          <Text>
-            <Span>Start SorterBot Cloud</Span>
-          </Text>
-          <Btn
-            onClick={props.startCloud}
-            src={require('assets/start_white.svg')}
-          />
-        </CloudStatusWrapper>
-      )
+      return offComponent
     case 'loading':
       return (
         <CloudStatusWrapper faded={props.faded}>
@@ -62,18 +64,22 @@ const CloudStatusComponent = (props) => {
         </CloudStatusWrapper>
       )
     default:
-      return (
-        <CloudStatusWrapper faded={props.faded}>
-          <Text>
-            <Span>SorterBot Cloud is running at: </Span>
-            {props.cloudStatus}
-          </Text>
-          <Btn
-            onClick={props.stopCloud}
-            src={require('assets/stop_white.svg')}
-          />
-        </CloudStatusWrapper>
-      )
+      if (props.cloudStatus) {
+        return (
+          <CloudStatusWrapper faded={props.faded}>
+            <Text>
+              <Span>SorterBot Cloud is running at: </Span>
+              {props.cloudStatus}
+            </Text>
+            <Btn
+              onClick={props.stopCloud}
+              src={require('assets/stop_white.svg')}
+            />
+          </CloudStatusWrapper>
+        )
+      } else {
+        return offComponent
+      }
   }
 }
 
@@ -88,8 +94,8 @@ const HeaderComponent = () => {
       { command: 'cloud_stop', fn: () => fadeChangeStatus('off') },
       { command: 'cloud_status', fn: (data) => fadeChangeStatus(data.status) },
     ])
-    WS.waitForSocketConnection(HeaderComponent.name, () => {
-      WS.sendMessage({ command: 'cloud_status' })
+    WS.waitForSocketConnection(() => {
+      WS.sendMessage({ command: 'fetch_cloud_status' })
     })
   }, [])
 

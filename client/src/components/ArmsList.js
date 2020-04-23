@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import moment from 'moment'
 import { css } from '@emotion/core'
 import styled from '@emotion/styled'
 import Fade from 'react-reveal/Fade'
@@ -15,7 +16,7 @@ const ArmsListComponent = (props) => {
       { command: 'fetch_arms', fn: (data) => setArms(data.arms) },
       { command: 'arm_conn_status', fn: (data) => ArmConnStatusCallback(data.armId, data.cloudConnectSuccess) },
     ])
-    WS.waitForSocketConnection(ArmsListComponent.name, () => {
+    WS.waitForSocketConnection(() => {
         WS.sendMessage({ command: 'fetch_arms' })
     })
   }, [])
@@ -35,6 +36,7 @@ const ArmsListComponent = (props) => {
 
   const onStartSession = (e, armId) => {
     e.stopPropagation()
+    e.preventDefault();
     WS.sendMessage({ command: 'start_session', armId })
   }
 
@@ -45,19 +47,20 @@ const ArmsListComponent = (props) => {
           {arms.map(arm => {
             return (
               <Arm
-                selectedArm={props.selectedArm}
+                selected={props.selectedArm === arm.arm_id}
                 onClick={() => onArmClick(arm.arm_id)}
                 key={arm.arm_id}
               >
-                <div>
-                  <ArmId>{arm.arm_id}</ArmId>
-                  <LastOnline>{arm.last_online}</LastOnline>
-                </div>
-                <Buttons>
-                    <StartBtn src={require(`assets/start.svg`)} onClick={(e) => onStartSession(e, arm.arm_id)} />
-                  <Status selected={props.selectedArm} blink={blinkingArms[arm.arm_id]} />
-                </Buttons>
-                <Border selected={props.selectedArm} />
+                <ArmInnerWrapper>
+                  <div>
+                    <ArmId>{arm.arm_id}</ArmId>
+                    <LastOnline>{moment(arm.last_online).local().format('YYYY-MM-DD HH:mm:ss')}</LastOnline>
+                  </div>
+                  <Buttons>
+                      <StartBtn src={require(`assets/start.svg`)} onClick={(e) => onStartSession(e, arm.arm_id)} />
+                    <Status selected={props.selectedArm === arm.arm_id} blink={blinkingArms[arm.arm_id]} />
+                  </Buttons>
+                </ArmInnerWrapper>
               </Arm>
             )
           })}
@@ -79,35 +82,39 @@ const ArmsList = styled.div`
   width: 280px;
 `
 
-const armSelected = props => css`
-  background-color: ${props.theme.colors.primary};
-  color: #fff;
-  border-color: ${props.theme.colors.primary}
+const ArmInnerWrapper = styled.div`
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 13px;
+  padding-right: 17px;
+  transition: all 0.3s ease-in-out;
+  width: 245px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
 `
 
 const Arm = styled.div(props => css`
-  align-items: center;
   background-color: #fff;
   border-radius: 4px;
   color: #333;
   cursor: pointer;
   display: flex;
   height: 70px;
-  justify-content: space-between;
   margin-bottom: 19px;
   overflow: hidden;
-  padding: 13px;
-  padding-right: 17px;
   position: relative;
   transition: all 0.3s ease-in-out;
   ${props.theme.borders.base}
+  ${props.selected && `border-left: 4px solid ${props.theme.colors.primary};`}
   ${props.theme.shadow('innerBox')}
-  ${props.selectedArm ? armSelected(props) : ''}
   & :hover {
     box-shadow: none;
   }
   & :active {
-    background-color: ${props.selectedArm ? props.theme.colors.darkPrimary : props.theme.colors.pressed};
+    background-color: ${props.theme.colors.pressed};
     ${props.theme.shadow('innerBoxInset')}
   }
 `)
@@ -134,10 +141,18 @@ const StartBtn = styled.img`
   width: 18px;
   height: 18px;
   cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.3s ease-in-out;
+  & :hover {
+    transform: scale(1.2);
+  }
+  & :active {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 `
 
 const Status = styled.div(props => css`
-  // background-color: ${props.selectedArm ? props.theme.colors.darkPrimary : props.theme.colors.primary};
   background-color: #bbb;
   ${props.blink === 'ok' ? `background-color: ${props.theme.colors.primary};` : ''}
   ${props.blink === 'dc' ? `background-color: ${props.theme.colors.warning};` : ''}
@@ -165,16 +180,3 @@ const Status = styled.div(props => css`
     }
   }
 `)
-
-const Border = styled.div`
-  background-color: ${props => props.selectedArm ? props.theme.colors.darkPrimary : props.theme.colors.primary};
-  bottom: 0%;
-  height: 100%;
-  left: 0%;
-  position: absolute;
-  right: auto;
-  top: 0%;
-  width: 4px;
-  z-index: 100;
-  transition: all 0.15s ease-in-out;
-`

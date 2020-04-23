@@ -73,8 +73,7 @@ class Log(models.Model):
         open_logs = UI.objects.get(id=1).open_logs.split(".")
 
         try:
-            if open_logs[0] == self.arm.arm_id and int(open_logs[1]) == self.session.id and int(open_logs[2]) == self.log_type:
-                print("PUSHING")
+            if str(open_logs[0]) == str(self.arm.arm_id) and str(open_logs[1]) == str(self.session.id) and str(open_logs[2]) == str(self.log_type):
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
                     "default", {

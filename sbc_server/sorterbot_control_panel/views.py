@@ -15,6 +15,8 @@ from .models import Arm, Session, UI, Log
 from .serializers import ArmSerializer, SessionSerializer, UISerializer
 from .ecs import ECSManager
 
+ecsManager = ECSManager()
+
 
 @require_http_methods(["GET"])
 def index(request):
@@ -31,7 +33,7 @@ def get_cloud_ip(request):
     new_arm.save()
 
     # Get SorterBot Cloud status from DB
-    cloud_status = ECSManager().status()
+    cloud_status = ecsManager.status()
 
     # Check if status is a valid IP by trying to parse
     status_res = False
@@ -62,12 +64,13 @@ def send_connection_status(request):
     # Get current UI object and convert it to dict
     ui_objects = UI.objects.all()
     if len(ui_objects) > 0:
-        current_UI = model_to_dict(UI.objects.all()[0])
-    else:
-        UI(start_session=False).save()
+        current_UI = model_to_dict(ui_objects[0])
+    # else:
+        # If row is empty, create one with default value
+        # UI(start_session=False).save()
 
     # Reset flag after command was sent
-    UI(start_session=False).save()
+    # UI(start_session=False).save()
 
     # Send back command to start (or not) a new session
     return Response({"should_start_session": current_UI["start_session"]}, status=status.HTTP_200_OK)

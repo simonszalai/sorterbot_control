@@ -1,43 +1,53 @@
 import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import { css } from '@emotion/core'
+import Fade from 'react-reveal/Fade'
 import WS from 'webSocketService'
 
 
-const SessionComponent = (props) => {
+const SessionsListComponent = (props) => {
+  const [sessions, setSessions] = useState([])
+  const [selected, setSelected] = useState([])
   const [expandedId, setExpandedId] = useState(null)
 
-  const isExpanded = expandedId === props.session.id
-  const logButtons = [1000, 1200, 1400, 1600, 1800]
+  useEffect(() => {
+    WS.connect()
+    WS.addCallbacks([
+      { command: 'fetch_sessions_of_arm', fn: (data) => setSessions(data.sessions) },
+    ])
+    WS.waitForSocketConnection(() => {
+        WS.sendMessage({ command: 'fetch_arms' })
+    })
+  }, [])
 
-  const onButtonClick = (e, label) => {
+  const onButtonClick = (e, label, session) => {
     e.stopPropagation()
-    props.setSelected([props.session.id, label])
+    setSelected([session.id, label])
     WS.sendMessage({
       command: 'fetch_logs',
       arm_id: props.selectedArm,
-      sess_id: props.session.id,
+      sess_id: session.id,
       log_type: label
     })
     WS.sendMessage({
       command: 'set_open_logs',
-      open_logs: `${props.selectedArm}.${props.session.id}.${label}`
+      open_logs: `${props.selectedArm}.${session.id}.${label}`
     })
   }
 
   const onSessionClick = (expandedId, sessionId, setExpandedId) => {
     const newExpanded = expandedId === sessionId ? null : sessionId
     setExpandedId(newExpanded)
-    if (!newExpanded) props.setSelected([])
+    if (!newExpanded) setSelected([])
   }
   
-  const createButton = (label) => {
-    const disabled = !props.session.enabled_log_types?.split(',').includes(label.toString())
+  const createButton = (label, session) => {
+    const disabled = !session.enabled_log_types?.split(',').includes(label.toString())
     return (
       <Btn
         key={label}
-        onClick={(e) => onButtonClick(e, label)}
-        selected={props.selected[0] === props.session.id && props.selected[1] === label}
+        onClick={(e) => onButtonClick(e, label, session)}
+        selected={selected[0] === session.id && selected[1] === label}
         disabled={disabled}
       >
         {label}
@@ -46,63 +56,42 @@ const SessionComponent = (props) => {
   }
 
   return (
-    <Session onClick={() => onSessionClick(expandedId, props.session.id, setExpandedId)}>
-      <Header isExpanded={isExpanded}>
-        <div>
-          <SessionId>Session ID</SessionId>
-          <StartTime>{props.session.session_id}</StartTime>
-        </div>
-        <Status>{props.session.status}</Status>
-        <Dropdown
-          isExpanded={isExpanded}
-          src={require('assets/dropdown.svg')}
-        />
-      </Header>
-      <Body isExpanded={isExpanded}>
-        <BodyInner>
-          <SectionTitle>Images</SectionTitle>
-          <BtnWrapper>
-            {createButton('Before')}
-            {createButton('After')}
-          </BtnWrapper>
-          <SectionTitle>Logs</SectionTitle>
-          <BtnWrapper>
-            {logButtons.map(label => createButton(label))}
-          </BtnWrapper>
-          <BtnWrapper>
-            {createButton('Command Generation')}
-          </BtnWrapper>
-        </BodyInner>
-      </Body>
-    </Session>
-  )
-}
-
-const SessionsListComponent = (props) => {
-  const [sessions, setSessions] = useState([])
-  const [selected, setSelected] = useState([])
-
-  useEffect(() => {
-    WS.connect()
-    WS.addCallbacks([
-      { command: 'fetch_sessions_of_arm', fn: (data) => setSessions(data.sessions) },
-    ])
-    WS.waitForSocketConnection(SessionComponent.name, () => {
-        WS.sendMessage({ command: 'fetch_arms' })
-    })
-  }, [])
-
-  return (
     <SessionsList>
-      {sessions.map(session => (
-        <SessionComponent
-          key={session.session_id}
-          session={session}
-          selectedArm={props.selectedArm}
-          selected={selected}
-          setSelected={setSelected}
-        />
-      ))}
+      <Fade cascade duration={500} distance="3px">
+        <div>
+          {sessions.map(session => (
+            <Session onClick={() => onSessionClick(expandedId, session.id, setExpandedId)} key={session.id}>
+              <Header isExpanded={expandedId === session.id}>
+                <div>
+                  <SessionId>Session ID</SessionId>
+                  <StartTime>{session.session_id}</StartTime>
+                </div>
+                <Status>{session.status}</Status>
+                <Dropdown
+                  isExpanded={expandedId === session.id}
+                  src={require('assets/dropdown.svg')}
+                />
+              </Header>
+              <Body isExpanded={expandedId === session.id}>
+                <BodyInner>
+                  <SectionTitle>Images</SectionTitle>
+                  <BtnWrapper>
+                    {createButton('Before', session)}
+                    {createButton('After', session)}
+                  </BtnWrapper>
+                  <SectionTitle>Logs</SectionTitle>
+                  <BtnWrapper>
+                    {session.log_filenames.split(",").map(label => createButton(label, session))}
+                  </BtnWrapper>
+                  <BtnWrapper>
+                    {createButton('Command Generation', session)}
+                  </BtnWrapper>
+                </BodyInner>
+              </Body>
+            </Session>
+          ))}
+        </div>
+      </Fade>
     </SessionsList>
   )
 }
@@ -134,6 +123,10 @@ const Session = styled.div(props => css`
   position: relative;
   ${props.theme.borders.base}
   ${props.theme.shadow('innerBox')}
+  transition: all 0.3s ease-in-out;
+  & :hover {
+    box-shadow: none;
+  }
 `)
 
 const Header = styled.div(props => css`
@@ -148,6 +141,7 @@ const Header = styled.div(props => css`
   padding: 15px 15px 10px;
   position: relative;
   width: 100%;
+  transition: all 0.3s ease-in-out;
   transition: border-bottom 0.2s ease ${props.isExpanded ? '0s' : '0.4s'};
 `)
 
@@ -161,7 +155,7 @@ const Dropdown = styled.img`
   top: auto;
   width: 13px;
   transition: all 0.3s ease-in-out;
-  ${props => props.isExpanded ? 'transform: rotateZ(180deg);' : ''}
+  ${props => props.isExpanded && 'transform: rotateZ(180deg);'}
 `
 
 const SessionId = styled.div`
@@ -210,7 +204,7 @@ const Body = styled.div`
   max-height: 0;
   padding: 0 10px;
   transition: max-height 0.6s ease;
-  ${props => props.isExpanded ? expandedBody() : ''}
+  ${props => props.isExpanded && expandedBody()}
 `
 
 const BodyInner = styled.div`
@@ -256,7 +250,7 @@ const Btn = styled.button(props => css`
   transition: all 0.15s ease-in-out;
   ${props.disabled ? props.theme.borders.darker : props.theme.borders.base}
   ${!props.disabled && props.theme.shadow('button')}
-  ${props.selected ? btnSelected(props) : ''}
+  ${props.selected && btnSelected(props)}
   & :hover {
     box-shadow: none;
   }

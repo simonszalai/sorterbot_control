@@ -22,20 +22,24 @@ const translateLogName = (logName) => {
 }
 
 const LogsComponent = (props) => {
-  return (
-    <LogsContainer>
-      {props.logs.map((log, i) => {
-        const executionTime = parseInt((props.logs[i + 1]?.created - log.created) * 1000) || ''
-        return (
-          <LogRow key={log.id} color={translateLogName(log.name).color}>
-            <Time title={`Execution took ${executionTime}ms`}>{log.asctime}   </Time>
-            <Name title={log.name}>{translateLogName(log.name).name}:   </Name>
-            <span title={`${log.pathname}:${log.lineno}`}>{log.msg}</span>
-          </LogRow>
-        )
-      })}
-    </LogsContainer>
-  )
+  if (props.logs.length > 0) {
+    return (
+      <LogsContainer>
+        {props.logs.map((log, i) => {
+          const executionTime = parseInt((props.logs[i + 1]?.created - log.created) * 1000) || ''
+          return (
+            <LogRow key={log.id} color={translateLogName(log.name).color}>
+              <Time title={`Execution took ${executionTime}ms`}>{log.asctime}   </Time>
+              <Name title={log.name}>{translateLogName(log.name).name}:   </Name>
+              <span title={`${log.pathname}:${log.lineno}`}>{log.msg}</span>
+            </LogRow>
+          )
+        })}
+      </LogsContainer>
+    )
+  } else {
+    return null
+  }
 }
 
 export default LogsComponent
