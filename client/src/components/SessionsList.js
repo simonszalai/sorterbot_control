@@ -7,13 +7,11 @@ import WS from 'webSocketService'
 
 const SessionsListComponent = (props) => {
   const [sessions, setSessions] = useState([])
-  const [selected, setSelected] = useState([])
-  const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => {
     WS.connect()
     WS.addCallbacks([
-      { command: 'fetch_sessions_of_arm', fn: (data) => setSessions(data.sessions) },
+      { command: 'sessions_of_arm', fn: (data) => setSessions(data.sessionsOfArm) }
     ])
     WS.waitForSocketConnection(() => {
         WS.sendMessage({ command: 'fetch_arms' })
@@ -22,35 +20,49 @@ const SessionsListComponent = (props) => {
 
   const onButtonClick = (e, label, session) => {
     e.stopPropagation()
-    setSelected([session.id, label])
+    props.setSelectedLog([session.id, label])
+    if (!props.selectedArm) throw new Error("Selected arm cannot be null!")
+    if (!session.id) throw new Error("Session ID cannot be null!")
+    if (!label) throw new Error("Label cannot be null!")
+
+    let command = 'fetch_logs'
+    if (['before', 'after'].includes(label.toString().toLowerCase())) {
+      // For retrieving images
+      command = 'fetch_stitch'
+      props.setLogs([])
+    } else {
+      // For retrieving logs
+      props.setStitchUrl(null)
+      WS.sendMessage({
+        command: 'set_open_logs',
+        open_logs: `${props.selectedArm}.${session.id}.${label}`
+      })
+    }
+    // For retrieving images and logs
     WS.sendMessage({
-      command: 'fetch_logs',
+      command,
       arm_id: props.selectedArm,
       sess_id: session.id,
       log_type: label
     })
-    WS.sendMessage({
-      command: 'set_open_logs',
-      open_logs: `${props.selectedArm}.${session.id}.${label}`
-    })
   }
 
-  const onSessionClick = (expandedId, sessionId, setExpandedId) => {
-    const newExpanded = expandedId === sessionId ? null : sessionId
-    setExpandedId(newExpanded)
-    if (!newExpanded) setSelected([])
+  const onSessionClick = (sessionId) => {
+    const newExpanded = props.expandedSessionId === sessionId ? null : sessionId
+    props.setExpandedSessionId(newExpanded)
+    if (!newExpanded) props.setSelectedLog([])
   }
   
   const createButton = (label, session) => {
-    const disabled = !session.enabled_log_types?.split(',').includes(label.toString())
+    const disabled = !JSON.parse(session.enabled_log_types).includes(label.toString().toLowerCase())
     return (
       <Btn
         key={label}
         onClick={(e) => onButtonClick(e, label, session)}
-        selected={selected[0] === session.id && selected[1] === label}
+        selected={props.selectedLog[0] === session.id && props.selectedLog[1] === label}
         disabled={disabled}
       >
-        {label}
+        {label.replace('_', ' ')}
       </Btn>
     )
   }
@@ -60,19 +72,19 @@ const SessionsListComponent = (props) => {
       <Fade cascade duration={500} distance="3px">
         <div>
           {sessions.map(session => (
-            <Session onClick={() => onSessionClick(expandedId, session.id, setExpandedId)} key={session.id}>
-              <Header isExpanded={expandedId === session.id}>
+            <Session onClick={() => onSessionClick(session.id)} key={session.id}>
+              <Header isExpanded={props.expandedSessionId === session.id}>
                 <div>
                   <SessionId>Session ID</SessionId>
                   <StartTime>{session.session_id}</StartTime>
                 </div>
-                <Status>{session.status}</Status>
+                <Status content={session.status}>{session.status}</Status>
                 <Dropdown
-                  isExpanded={expandedId === session.id}
+                  isExpanded={props.expandedSessionId === session.id}
                   src={require('assets/dropdown.svg')}
                 />
               </Header>
-              <Body isExpanded={expandedId === session.id}>
+              <Body isExpanded={props.expandedSessionId === session.id}>
                 <BodyInner>
                   <SectionTitle>Images</SectionTitle>
                   <BtnWrapper>
@@ -84,7 +96,8 @@ const SessionsListComponent = (props) => {
                     {session.log_filenames.split(",").map(label => createButton(label, session))}
                   </BtnWrapper>
                   <BtnWrapper>
-                    {createButton('Command Generation', session)}
+                    {createButton('comm_gen', session)}
+                    {createButton('comm_exec', session)}
                   </BtnWrapper>
                 </BodyInner>
               </Body>
@@ -121,6 +134,7 @@ const Session = styled.div(props => css`
   justify-content: flex-start;
   margin: 15px 0;
   position: relative;
+  width: 255px;
   ${props.theme.borders.base}
   ${props.theme.shadow('innerBox')}
   transition: all 0.3s ease-in-out;
@@ -168,31 +182,49 @@ const SessionId = styled.div`
 
 const StartTime = styled.div`
   font-family: Lato, sans-serif;
-  font-size: 13px;
+  font-size: 12px;
+  color: #666;
 `
 
-const Status = styled.div`
-  align-items: center;
-  background-color: #fff;
-  border-radius: 4px;
-  border: 1px solid #10a019;
-  bottom: auto;
-  box-shadow: none;
-  color: #10a019;
-  display: flex;
-  flex: 0 0 auto;
-  font-family: Montserrat, sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  justify-content: center;
-  left: auto;
-  line-height: 10px;
-  padding: 4px 7px 2px;
-  position: absolute;
-  right: 11px;
-  text-transform: uppercase;
-  top: 15px;
-`
+const Status = styled.div(props => {
+  let color
+  switch (props.content.toLowerCase()) {
+    case 'completed':
+      color = '#10a019'
+      break
+    case 'in progress':
+      color = '#e39b00'
+      break
+    case 'error':
+      color = '#e30f00'
+      break
+    default:
+      color = '#fff'
+      break
+  }
+  return css`
+    align-items: center;
+    background-color: #fff;
+    border-radius: 4px;
+    border: 1px solid ${color};
+    bottom: auto;
+    box-shadow: none;
+    color: ${color};
+    display: flex;
+    flex: 0 0 auto;
+    font-family: Montserrat, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    justify-content: center;
+    left: auto;
+    line-height: 10px;
+    padding: 4px 7px 2px;
+    position: absolute;
+    right: 11px;
+    text-transform: uppercase;
+    top: 14px;
+  `
+})
 
 const expandedBody = () => css`
   max-height: 300px;
@@ -215,7 +247,7 @@ const SectionTitle = styled.div`
   font-family: Ubuntu, Helvetica, sans-serif;
   font-size: 18px;
   line-height: 18px;
-  margin: 10px 5px 15px;
+  margin: 10px 5px 14px;
 `
 
 const BtnWrapper = styled.div`
@@ -223,6 +255,7 @@ const BtnWrapper = styled.div`
   flex-wrap: wrap;
   justify-content: space-around;
   width: 100%;
+  margin-top: 1px;
 `
 
 const btnSelected = (props) => css`

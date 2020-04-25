@@ -13,8 +13,8 @@ const ArmsListComponent = (props) => {
   useEffect(() => {
     WS.connect()
     WS.addCallbacks([
-      { command: 'fetch_arms', fn: (data) => setArms(data.arms) },
-      { command: 'arm_conn_status', fn: (data) => ArmConnStatusCallback(data.armId, data.cloudConnectSuccess) },
+      { command: 'arms', fn: (data) => setArms(data.arms) },
+      { command: 'arm_status', fn: (data) => ArmConnStatusCallback(data.armId, data.cloudConnectSuccess) },
     ])
     WS.waitForSocketConnection(() => {
         WS.sendMessage({ command: 'fetch_arms' })
@@ -30,14 +30,16 @@ const ArmsListComponent = (props) => {
 
   const onArmClick = (armId) => {
     props.setSelectedArm(armId)
-    WS.sendMessage({ command: 'fetch_sessions_of_arm', armId })
+    props.setLogs([])
+    props.setExpandedSessionId(null)
+    props.setSelectedLog([])
+    WS.sendMessage({ command: 'fetch_sessions_of_arm', arm_id: armId })
     WS.sendMessage({ command: 'set_open_logs', open_logs: 'none' })
   }
 
   const onStartSession = (e, armId) => {
     e.stopPropagation()
-    e.preventDefault();
-    WS.sendMessage({ command: 'start_session', armId })
+    WS.sendMessage({ command: 'start_session', arm_id: armId })
   }
 
   return (
@@ -53,12 +55,20 @@ const ArmsListComponent = (props) => {
               >
                 <ArmInnerWrapper>
                   <div>
-                    <ArmId>{arm.arm_id}</ArmId>
-                    <LastOnline>{moment(arm.last_online).local().format('YYYY-MM-DD HH:mm:ss')}</LastOnline>
+                    <ArmId title="Arm ID">{arm.arm_id}</ArmId>
+                    <LastOnline title="Last online">{moment(arm.last_online).local().format('YYYY-MM-DD HH:mm:ss')}</LastOnline>
                   </div>
                   <Buttons>
-                      <StartBtn src={require(`assets/start.svg`)} onClick={(e) => onStartSession(e, arm.arm_id)} />
-                    <Status selected={props.selectedArm === arm.arm_id} blink={blinkingArms[arm.arm_id]} />
+                    <StartBtn
+                      title="Start Session"
+                      src={require(`assets/start.svg`)}
+                      onClick={(e) => onStartSession(e, arm.arm_id)}
+                    />
+                    <Status
+                      title="Arm Status"
+                      selected={props.selectedArm === arm.arm_id}
+                      blink={blinkingArms[arm.arm_id]}
+                    />
                   </Buttons>
                 </ArmInnerWrapper>
               </Arm>

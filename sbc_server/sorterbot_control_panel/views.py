@@ -56,7 +56,7 @@ def send_connection_status(request):
     # Send payload to frontend though channels
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("default", {
-        "type": "arm.conn.status",
+        "type": "push.arm.status",
         "arm_id": arm_id,
         "cloud_connect_success": cloud_connect_success
     })
@@ -65,23 +65,42 @@ def send_connection_status(request):
     ui_objects = UI.objects.all()
     if len(ui_objects) > 0:
         current_UI = model_to_dict(ui_objects[0])
-    # else:
+    else:
         # If row is empty, create one with default value
-        # UI(start_session=False).save()
+        UI(arms_to_start="[]").save()
+        current_UI = model_to_dict(UI.objects.all()[0])
 
-    # Reset flag after command was sent
-    # UI(start_session=False).save()
+    # Remove arm id from list of arms to be started after command was sent back
+    arms_to_start = json.loads(current_UI["arms_to_start"])
+    try:
+        arms_to_start.remove(arm_id)
+    except ValueError:
+        pass
+    UI(arms_to_start=json.dumps(arms_to_start)).save()
 
     # Send back command to start (or not) a new session
-    return Response({"should_start_session": current_UI["start_session"]}, status=status.HTTP_200_OK)
+    return Response({"should_start_session": arm_id in current_UI["arms_to_start"]}, status=status.HTTP_200_OK)
 
 
 @csrf_exempt
 @api_view(["POST"])
 def log(request):
+    is_final_log = False
     new_log_args = {}
+    args = json.loads(request.data["args"].replace("'", '"'))
+    session = Session.objects.get(arm_id=args["arm_id"], session_id=args["session_id"])
+
+    # Refresh session status if final log is received
+    try:
+        if args["session_finished"]:
+            session.status = "Completed"
+            session.save()
+            return Response(status=status.HTTP_200_OK)
+    except KeyError:
+        pass
+
+    # Add log to postgres if not last log of session
     for field in Log._meta.get_fields():
-        args = json.loads(request.data["args"].replace("'", '"'))
         # PK field 'id' does not exist in logger object, so skip it
         if field.name == "id":
             continue
@@ -103,15 +122,16 @@ def log(request):
     Log(**new_log_args).save()
 
     # Set enabled log types on Session to accurately enable/disable log type buttons on front-end
-    session = Session.objects.get(arm_id=args["arm_id"], session_id=args["session_id"])
-    current_logtypes = session.enabled_log_types.split(",")
+    current_logtypes = session.enabled_log_types or "[]"
+    current_logtypes = json.loads(current_logtypes)
     new_logtypes = current_logtypes + [str(args["log_type"])]
     no_dupl_logtypes = list(set(new_logtypes))
-    session.enabled_log_types = ",".join(no_dupl_logtypes)
+    session.enabled_log_types = json.dumps(no_dupl_logtypes)
+
     session.save()
 
-    # Refresh sessions on front-end if there is a new log type
-    if not str(args["log_type"]) in current_logtypes:
+    # Refresh sessions on front-end if there is a new log type or session finished
+    if not str(args["log_type"]) in current_logtypes or is_final_log:
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)("default", {
             "type": "push.sessions.of.arm",

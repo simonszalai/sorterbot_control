@@ -3,8 +3,10 @@ from channels.generic.websocket import WebsocketConsumer
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.models import model_to_dict
 
-from .models import Arm, Session, UI, Log
+from .models import UI
 from .ecs import ECSManager
+from .database import DB
+from .s3 import S3
 
 
 class SBCConsumer(WebsocketConsumer):
@@ -12,6 +14,8 @@ class SBCConsumer(WebsocketConsumer):
 
     def connect(self):
         print("Connecting")
+        self.db = DB()
+        self.s3 = S3()
         self.ecsManager = ECSManager()
         self.channel_layer.group_add("default", self.channel_name)
         self.accept()
@@ -24,84 +28,106 @@ class SBCConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         data = json.loads(text_data)
-        command = data["command"]
-        content = {"command": command}
+        command_in = data["command"]
+        content = {}
 
-        if command == "fetch_arms":
-            arms_list = self.fetch_arms()
-            content["arms"] = arms_list
+        if command_in == "fetch_arms":
+            content = {
+                "command": "arms",
+                "arms": self.db.get_arms()
+            }
             self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))  # DjangoJSONEncoder to serialize Datetime properly
 
-        elif command == "fetch_sessions_of_arm":
-            sessions = self.fetch_sessions_of_arm(data["armId"])
-            content["sessions"] = sessions
+        elif command_in == "fetch_sessions_of_arm":
+            content = {
+                "command": "sessions_of_arm",
+                "sessionsOfArm": self.db.get_sessions_of_arm(data["arm_id"])
+            }
             self.send(text_data=json.dumps(content))
 
-        elif command == "fetch_logs":
-            logs = self.fetch_logs(data)
-            content["logs"] = logs
+        elif command_in == "fetch_logs":
+            content = {
+                "command": "logs",
+                "logs": self.db.get_logs(arm_id=data["arm_id"], session_id=data["sess_id"], log_type=data["log_type"])
+            }
             self.send(text_data=json.dumps(content))
 
-        elif command == "set_open_logs":
+        elif command_in == "fetch_stitch":
+            session = self.db.get_session_by_id(data["sess_id"])
+            stitch_name = f'{data["log_type"].lower()}_stitch.jpg'
+            content = {
+                "command": "stitch",
+                "stitch_url": self.s3.get_signed_url(s3_path=f'{data["arm_id"]}/{session.session_id}/{stitch_name}')
+            }
+            self.send(text_data=json.dumps(content))
+
+        elif command_in == "fetch_cloud_status":
+            content = {
+                "command": "cloud_status",
+                "cloudStatus": self.ecsManager.status()
+            }
+            self.send(text_data=json.dumps(content))
+
+        elif command_in == "start_cloud":
+            self.ecsManager.start()
+
+        elif command_in == "stop_cloud":
+            self.ecsManager.stop()
+
+        elif command_in == "start_session":
+            sessions_to_start = json.loads(model_to_dict(UI.objects.all()[0])["arms_to_start"])
+            sessions_to_start.append(data["arm_id"])
+            UI(arms_to_start=json.dumps(sessions_to_start)).save()
+
+        elif command_in == "set_open_logs":
             UI(open_logs=data["open_logs"]).save()
 
-        elif command == "fetch_cloud_status":
-            content["command"] = "cloud_status"
-            content["status"] = self.ecsManager.status()
-            self.send(text_data=json.dumps(content))
-
-        elif command == "cloud_start":
-            public_ip = self.ecsManager.start()
-            content["publicIp"] = public_ip
-            self.send(text_data=json.dumps(content))
-
-        elif command == "cloud_stop":
-            self.ecsManager.stop()
-            self.send(text_data=json.dumps(content))
-
-        elif command == "start_session":
-            arm_id = data["armId"]
-            UI(start_session=True).save()
-
-    def arm_added(self, event):
-        content = {"command": "fetch_arms"}
-        arms_list = self.fetch_arms()
-        content["arms"] = arms_list
+    def push_arms(self, event):
+        content = {
+            "command": "arms",
+            "arms": self.db.get_arms()
+        }
         self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))  # DjangoJSONEncoder to serialize Datetime properly
 
-    def push_logs(self, event):
-        content = {"command": "fetch_logs"}
-        logs = Log.objects.filter(arm=event["arm_id"], session=event["sess_id"], log_type=event["log_type"]).order_by("created")
-        content["logs"] = [model_to_dict(log) for log in logs]
+    def push_sessions_of_arm(self, event):
+        content = {
+            "command": "sessions_of_arm",
+            "sessionsOfArm": self.db.get_sessions_of_arm(arm_id=event["arm_id"])
+        }
         self.send(text_data=json.dumps(content))
 
-    def status_changed(self, event):
-        self.send(text_data=json.dumps({
-            "command": "cloud_status",
-            "status": event["status"]
-        }))
+    def push_logs(self, event):
+        content = {
+            "command": "logs",
+            "logs": self.db.get_logs(arm_id=event["arm_id"], session_id=event["sess_id"], log_type=event["log_type"])
+        }
+        self.send(text_data=json.dumps(content))
 
-    def arm_conn_status(self, event):
-        self.send(text_data=json.dumps({
-            "command": "arm_conn_status",
+    def push_cloud_status(self, event):
+        content = {
+            "command": "cloud_status",
+            "cloud_status": event["status"]
+        }
+        self.send(text_data=json.dumps(content))
+
+    def push_arm_status(self, event):
+        content = {
+            "command": "arm_status",
             "armId": event["arm_id"],
             "cloudConnectSuccess": event["cloud_connect_success"]
-        }))
+        }
+        self.send(text_data=json.dumps(content))
 
-    def fetch_arms(self):
-        arms = Arm.objects.all().order_by("arm_id")
-        return [model_to_dict(arm) for arm in arms]
+    # def fetch_arms(self):
+    #     arms = Arm.objects.all().order_by("arm_id")
+    #     return [model_to_dict(arm) for arm in arms]
 
-    def fetch_sessions_of_arm(self, arm_id):
-        sessions_of_arm = Session.objects.filter(arm=arm_id).order_by("-session_id")
-        return [model_to_dict(session) for session in sessions_of_arm]
+    # def fetch_sessions_of_arm(self, arm_id):
+    #     sessions_of_arm = Session.objects.filter(arm=arm_id).order_by("-session_id")
+    #     return [model_to_dict(session) for session in sessions_of_arm]
 
-    def push_sessions_of_arm(self, event):
-        self.send(text_data=json.dumps({
-            "command": "fetch_sessions_of_arm",
-            "sessions": self.fetch_sessions_of_arm(arm_id=event["arm_id"]),
-        }))
 
-    def fetch_logs(self, data):
-        logs = Log.objects.filter(arm=data["arm_id"], session=data["sess_id"], log_type=data["log_type"]).order_by("created")
-        return [model_to_dict(log) for log in logs]
+
+    # def fetch_logs(self, data):
+    #     logs = Log.objects.filter(arm=data["arm_id"], session=data["sess_id"], log_type=data["log_type"]).order_by("created")
+    #     return [model_to_dict(log) for log in logs]

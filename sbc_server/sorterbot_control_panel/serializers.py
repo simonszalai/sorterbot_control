@@ -25,7 +25,7 @@ class SessionSerializer(serializers.HyperlinkedModelSerializer):
 class UISerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = UI
-        fields = ["id", "cloud_status", "start_session"]
+        fields = ["id", "cloud_status", "arms_to_start"]
 
 
 class LogSerializer(serializers.HyperlinkedModelSerializer):

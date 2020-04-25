@@ -18,6 +18,7 @@ class WebSocketService {
 
   addCallbacks(callbacks) {
     callbacks.forEach(callback => this.callbacks[callback.command] = callback.fn)
+    console.log("WebSocketService -> addCallbacks -> this.callbacks", this.callbacks)
   }
 
 

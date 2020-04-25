@@ -90,9 +90,7 @@ const HeaderComponent = () => {
   useEffect(()=>{
     WS.connect()
     WS.addCallbacks([
-      { command: 'cloud_start', fn: (data) => fadeChangeStatus(data.publicIp) },
-      { command: 'cloud_stop', fn: () => fadeChangeStatus('off') },
-      { command: 'cloud_status', fn: (data) => fadeChangeStatus(data.status) },
+      { command: 'cloud_status', fn: (data) => fadeChangeStatus(data.cloudStatus) }
     ])
     WS.waitForSocketConnection(() => {
       WS.sendMessage({ command: 'fetch_cloud_status' })
@@ -108,13 +106,13 @@ const HeaderComponent = () => {
   }
 
   const startCloud = () => {
-    WS.sendMessage({ command: 'cloud_start' })
+    WS.sendMessage({ command: 'start_cloud' })
     fadeChangeStatus('startLoading')
     localStorage.setItem('cloudStatus', 'startLoading')
   }
 
   const stopCloud = () => {
-    WS.sendMessage({ command: 'cloud_stop' })
+    WS.sendMessage({ command: 'stop_cloud' })
     fadeChangeStatus('stopLoading')
     localStorage.setItem('cloudStatus', 'stopLoading')
   }

@@ -11,7 +11,7 @@ class Arm(models.Model):
     def save(self, *args, **kwargs):
         super(Arm, self).save(*args, **kwargs)
         channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)("default", {"type": "arm.added"})
+        async_to_sync(channel_layer.group_send)("default", {"type": "push.arms"})
 
 
 class Session(models.Model):
@@ -22,7 +22,7 @@ class Session(models.Model):
     after_img_url = models.CharField(max_length=300, blank=True)
     logs_base_url = models.CharField(max_length=300, blank=True)
     log_filenames = models.TextField(blank=True)
-    enabled_log_types = models.TextField()
+    enabled_log_types = models.TextField(default="[]")
 
     def save(self, *args, **kwargs):
         super(Session, self).save(*args, **kwargs)
@@ -31,8 +31,7 @@ class Session(models.Model):
 
 
 class UI(models.Model):
-    cloud_status = models.CharField(max_length=20)
-    start_session = models.BooleanField(default=False)
+    arms_to_start = models.TextField()
     open_logs = models.CharField(max_length=40, default="")
 
     def save(self, *args, **kwargs):

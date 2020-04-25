@@ -37,7 +37,7 @@ class ECSManager:
         #         UI(cloud_status="startLoading").save()
 
         async_to_sync(self.channel_layer.group_send)("default", {
-            "type": "status.changed",
+            "type": "push.cloud.status",
             "status": self.status()
         })
 
@@ -92,7 +92,7 @@ class ECSManager:
         # UI(cloud_status=public_ip).save()
 
         async_to_sync(self.channel_layer.group_send)("default", {
-            "type": "status.changed",
+            "type": "push.cloud.status",
             "status": public_ip
         })
 
@@ -121,7 +121,7 @@ class ECSManager:
 
         # UI(cloud_status="stopLoading").save()
         async_to_sync(self.channel_layer.group_send)("default", {
-            "type": "status.changed",
+            "type": "push.cloud.status",
             "status": "stopLoading"
         })
 
@@ -131,6 +131,6 @@ class ECSManager:
         # UI(cloud_status="off").save()
 
         async_to_sync(self.channel_layer.group_send)("default", {
-            "type": "status.changed",
+            "type": "push.cloud.status",
             "status": "off"
         })

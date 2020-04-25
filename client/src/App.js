@@ -8,20 +8,20 @@ import theme from './theme'
 import Header from 'components/Header'
 import ArmsList from 'components/ArmsList'
 import SessionsList from 'components/SessionsList'
-import Logs from 'components/Logs'
+import Content from 'components/Content'
 
 
 function App() {
   const [logs, setLogs] = useState([])
   const [selectedArm, setSelectedArm] = useState(null)
+  const [expandedSessionId, setExpandedSessionId] = useState(null)
+  const [selectedLog, setSelectedLog] = useState([])
+  const [stitchUrl, setStitchUrl] = useState(null)
 
   useEffect(() => {
     WS.connect()
-    WS.addCallbacks([{
-      command: 'fetch_logs', fn: (data) => {
-        setLogs(data.logs)
-        }
-    }])
+    WS.addCallbacks([{ command: 'stitch', fn: (data) => setStitchUrl(data.stitch_url) }])
+    WS.addCallbacks([{ command: 'logs', fn: (data) => setLogs(data.logs) }])
     WS.sendMessage({ command: 'set_open_logs', open_logs: 'none'})
   }, [])
 
@@ -33,9 +33,23 @@ function App() {
           <ArmsList
             selectedArm={selectedArm}
             setSelectedArm={setSelectedArm}
+            setLogs={setLogs}
+            setExpandedSessionId={setExpandedSessionId}
+            setSelectedLog={setSelectedLog}
           />
-          <SessionsList selectedArm={selectedArm} />
-          <Logs logs={logs} />
+          <SessionsList
+            selectedArm={selectedArm}
+            expandedSessionId={expandedSessionId}
+            setExpandedSessionId={setExpandedSessionId}
+            selectedLog={selectedLog}
+            setSelectedLog={setSelectedLog}
+            setLogs={setLogs}
+            setStitchUrl={setStitchUrl}
+          />
+          <Content
+            logs={logs}
+            stitchUrl={stitchUrl}
+          />
         </Main>
       </Body>
     </ThemeProvider>
@@ -64,8 +78,8 @@ const Body = styled.div`
   padding-left: 15px;
   position: relative;
   width: 70vw;
-  min-height: 50vh;
-  max-height: 60vh;
+  min-height: 80vh;
+  max-height: 80vh;
   z-index: 10;
   ${props => props.theme.shadow('box')}
   transition: all 0.3s ease-in-out;
