@@ -354,13 +354,3 @@ iframe {
   font-family: Poppins-Medium;
   src: url('../fonts/poppins/Poppins-Medium.ttf');
 }
-
-@font-face {
-  font-family: Poppins-Bold;
-  src: url('../fonts/poppins/Poppins-Bold.ttf');
-}
-
-@font-face {
-  font-family: Poppins-SemiBold;
-  src: url('../fonts/poppins/Poppins-SemiBold.ttf');
-}
