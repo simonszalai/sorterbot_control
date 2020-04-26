@@ -20,6 +20,8 @@ class SBCConsumer(WebsocketConsumer):
         self.channel_layer.group_add("default", self.channel_name)
         self.accept()
 
+        print(self.scope["user"])
+
     def disconnect(self, close_code):
         if not hasattr(self, "groups"):
             return

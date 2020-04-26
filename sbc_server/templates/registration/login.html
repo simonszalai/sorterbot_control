@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>SorterBot Control Panel Login</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'login/css/main.css' %}" />
+  </head>
+  <body>
+    <div class="limiter">
+      <div class="container-login" style="background: url('{% static 'login/images/bg-01.jpg' %}')">
+        <div class="wrap-login">
+          <form class="login-form" method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <span class="login-form-logo">
+              <img class="robot-arm" alt="" src="{% static 'login/images/robotic-arm.png' %}" />
+            </span>
+            <span class="login-form-title">
+              SorterBot Log in
+            </span>
+
+            <div class="wrap-input" data-validate="Enter username">
+              <img class="input-icon" alt="" src="{% static 'login/images/icons/icon_user.svg' %}" />
+              <input class="input" type="text" name="username" placeholder="Username" />
+            </div>
+
+            <div class="wrap-input" data-validate="Enter password">
+              <img class="input-icon" alt="" src="{% static 'login/images/icons/icon_password.svg' %}" />
+              <input class="input" type="password" name="password" placeholder="Password" />
+            </div>
+
+            <div class="info-container">
+              {% if form.errors %}
+                <p class="info-txt">Your username and password didn't match. Please try again.</p>
+              {% endif %}
+            </div>
+
+            <div class="container-login-form-btn">
+              <button type="submit" class="login-form-btn">
+                Login
+              </button>
+            </div>
+            <input type="hidden" name="next" value="{{ next }}" />
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

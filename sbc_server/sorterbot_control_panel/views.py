@@ -1,12 +1,15 @@
+import os
 import json
 import socket
 from datetime import datetime
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
+from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -18,9 +21,21 @@ from .ecs import ECSManager
 ecsManager = ECSManager()
 
 
+@login_required
 @require_http_methods(["GET"])
 def index(request):
-    return HttpResponse("Hello, world. You're at the polls index.")
+    try:
+        with open(os.path.join(settings.BASE_DIR, 'templates', 'main.html')) as f:
+            return HttpResponse(f.read())
+    except FileNotFoundError:
+        return HttpResponse(
+            """
+            This URL is only used when you have built the production
+            version of the app. Visit http://localhost:3000/ instead, or
+            run `yarn run build` to test the production version.
+            """,
+            status=501,
+        )
 
 
 @csrf_exempt
