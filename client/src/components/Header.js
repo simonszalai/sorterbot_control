@@ -128,6 +128,7 @@ const HeaderComponent = () => {
             startCloud={startCloud}
             stopCloud={stopCloud}
           />
+          <Logout onClick={() => WS.sendMessage({ command: 'logout' })}>Logout</Logout>
         </Right>
       </Header>
     </Wrapper>
@@ -201,4 +202,21 @@ const CloudStatusWrapper = styled.div`
   flex-direction: row;
   transition: opacity 0.5s ease-in-out;
   opacity: ${props => props.faded ? 0 : 1};
+`
+
+const Logout = styled.button`
+  text-transform: uppercase;
+  background: none;
+  color: #fff;
+  font-size: 13px;
+  line-height: 13px;
+  font-weight: 600;
+  position: relative;
+  right: -10px;
+  top: 1px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  & :active {
+    color: #999;
+  }
 `
