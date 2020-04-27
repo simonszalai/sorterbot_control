@@ -2,6 +2,9 @@ import json
 from channels.generic.websocket import WebsocketConsumer
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.models import model_to_dict
+from channels.auth import logout
+from django.shortcuts import redirect
+from asgiref.sync import async_to_sync
 
 from .models import UI
 from .ecs import ECSManager
@@ -29,6 +32,7 @@ class SBCConsumer(WebsocketConsumer):
             self.channel_layer.group_discard(group, self.channel_name)
 
     def receive(self, text_data):
+        print(text_data)
         data = json.loads(text_data)
         command_in = data["command"]
         content = {}
@@ -84,6 +88,11 @@ class SBCConsumer(WebsocketConsumer):
         elif command_in == "set_open_logs":
             UI(open_logs=data["open_logs"]).save()
 
+        elif command_in == "logout":
+            print("logout")
+            async_to_sync(logout)(self.scope)
+            return redirect("/")
+
     def push_arms(self, event):
         content = {
             "command": "arms",
@@ -120,16 +129,3 @@ class SBCConsumer(WebsocketConsumer):
         }
         self.send(text_data=json.dumps(content))
 
-    # def fetch_arms(self):
-    #     arms = Arm.objects.all().order_by("arm_id")
-    #     return [model_to_dict(arm) for arm in arms]
-
-    # def fetch_sessions_of_arm(self, arm_id):
-    #     sessions_of_arm = Session.objects.filter(arm=arm_id).order_by("-session_id")
-    #     return [model_to_dict(session) for session in sessions_of_arm]
-
-
-
-    # def fetch_logs(self, data):
-    #     logs = Log.objects.filter(arm=data["arm_id"], session=data["sess_id"], log_type=data["log_type"]).order_by("created")
-    #     return [model_to_dict(log) for log in logs]
