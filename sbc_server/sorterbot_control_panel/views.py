@@ -162,7 +162,7 @@ class ArmViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         """
-        Explicitly provide primary key (id) so the entry is updated, instead of a new being added
+        Explicitly provide primary key (id) so the entry is updated, instead of a new being added if arm already exists in db
 
         """
 
