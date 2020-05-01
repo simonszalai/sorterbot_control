@@ -25,6 +25,7 @@ function App() {
     WS.sendMessage({ command: 'set_open_logs', open_logs: 'none'})
   }, [])
 
+  console.log("App -> selectedArm", selectedArm)
   return (
     <ThemeProvider theme={theme}>
       <Body>

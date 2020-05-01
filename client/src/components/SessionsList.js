@@ -9,14 +9,24 @@ const SessionsListComponent = (props) => {
   const [sessions, setSessions] = useState([])
 
   useEffect(() => {
+    setSessions([])
     WS.connect()
     WS.addCallbacks([
-      { command: 'sessions_of_arm', fn: (data) => setSessions(data.sessionsOfArm) }
+      { command: 'sessions_of_arm', fn: onSessionsPushed }
     ])
     WS.waitForSocketConnection(() => {
         WS.sendMessage({ command: 'fetch_arms' })
     })
   }, [])
+
+  const onSessionsPushed = (data) => {
+    console.log("onSessionsPushed -> data", data)
+    // Only add pushed sessions to UI if they belong to the currently open arm
+    console.log("onSessionsPushed -> props.selectedArm", props)
+    // if (data.armId === props.selectedArm) {
+      setSessions(data.sessionsOfArm)
+    // }
+  }
 
   const onButtonClick = (e, label, session) => {
     e.stopPropagation()

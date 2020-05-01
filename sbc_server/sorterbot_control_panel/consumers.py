@@ -48,6 +48,7 @@ class SBCConsumer(WebsocketConsumer):
         elif command_in == "fetch_sessions_of_arm":
             content = {
                 "command": "sessions_of_arm",
+                "armId": data["arm_id"],
                 "sessionsOfArm": db.get_sessions_of_arm(data["arm_id"])
             }
             self.send(text_data=json.dumps(content))
@@ -104,6 +105,7 @@ class SBCConsumer(WebsocketConsumer):
     def push_sessions_of_arm(self, event):
         content = {
             "command": "sessions_of_arm",
+            "armId": event["arm_id"],
             "sessionsOfArm": db.get_sessions_of_arm(arm_id=event["arm_id"])
         }
         self.send(text_data=json.dumps(content))
