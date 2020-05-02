@@ -20,9 +20,7 @@ const SessionsListComponent = (props) => {
   }, [])
 
   const onSessionsPushed = (data) => {
-    console.log("onSessionsPushed -> data", data)
     // Only add pushed sessions to UI if they belong to the currently open arm
-    console.log("onSessionsPushed -> props.selectedArm", props)
     // if (data.armId === props.selectedArm) {
       setSessions(data.sessionsOfArm)
     // }

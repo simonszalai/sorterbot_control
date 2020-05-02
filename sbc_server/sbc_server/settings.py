@@ -36,7 +36,7 @@ ALLOWED_HOSTS = ['localhost', '192.168.178.19', 'docker.for.mac.host.internal']
 
 INSTALLED_APPS = [
     'channels',
-    'sorterbot_control_panel.apps.SorterbotControlPanelConfig',
+    'core.apps.SorterbotControlPanelConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

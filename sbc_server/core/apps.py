@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class SorterbotControlPanelConfig(AppConfig):
-    name = 'sorterbot_control_panel'
+    name = 'core'
 
     def ready(self):
-        import sorterbot_control_panel.signals
+        import core.signals
