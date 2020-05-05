@@ -1,3 +1,4 @@
+import os
 import boto3
 from time import sleep
 import channels.layers
@@ -7,8 +8,8 @@ from asgiref.sync import async_to_sync
 class ECSManager:
     def __init__(self):
         # Define Clients
-        self.ecs_client = boto3.client('ecs')
-        self.ec2_client = boto3.client('ec2')
+        self.ecs_client = boto3.client('ecs', aws_access_key_id=os.getenv("AMAZON_ACCESS_KEY_ID"), aws_secret_access_key=os.getenv("AMAZON_SECRET_ACCESS_KEY"))
+        self.ec2_client = boto3.client('ec2', aws_access_key_id=os.getenv("AMAZON_ACCESS_KEY_ID"), aws_secret_access_key=os.getenv("AMAZON_SECRET_ACCESS_KEY"))
 
         # Define waiters
         self.on_waiter = self.ecs_client.get_waiter('tasks_running')

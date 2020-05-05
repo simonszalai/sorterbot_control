@@ -1,0 +1,23 @@
+version: '3'
+
+networks:
+  django-network:
+    driver: bridge
+
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    networks:
+      - django-network
+  sorterbot_control:
+    image: sorterbot_control:latest
+    ports:
+      - 8000:8000
+    networks:
+      - django-network
+    depends_on:
+      - redis
+    volumes:
+      - "/Users/simon/dev/sorterbot_control/sbc_server:/sbc_server"

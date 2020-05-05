@@ -12,9 +12,10 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
 # Load environment variables
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).parent.parent.joinpath(".env"))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,7 +30,7 @@ SECRET_KEY = 'r!_m#+75!+b#u6d2rpx^un+ky@b#05#d%!*fz_$0x$$jiy0wt7'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '192.168.178.19', 'docker.for.mac.host.internal']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -98,8 +99,8 @@ ASGI_APPLICATION = 'sbc_server.routing.application'
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'config': {
-            'hosts': [('127.0.0.1', 6379)],
+        'CONFIG': {
+            'hosts': [('redis', 6379)],
             'capacity': 1500,
             'expiry': 10
         }
