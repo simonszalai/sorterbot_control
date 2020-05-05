@@ -66,6 +66,7 @@ class Log(models.Model):
     msg = models.TextField()
     pathname = models.CharField(max_length=200)
     lineno = models.CharField(max_length=10)
+    bm_id = models.FloatField(default=0)
 
     def save(self, *args, **kwargs):
         super(Log, self).save(*args, **kwargs)
@@ -75,7 +76,8 @@ class Log(models.Model):
             if str(open_logs[0]) == str(self.arm.arm_id) and str(open_logs[1]) == str(self.session.id) and str(open_logs[2]) == str(self.log_type):
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
-                    "default", {
+                    "default",
+                    {
                         "type": "push.logs",
                         "arm_id": self.arm.arm_id,
                         "sess_id": self.session.id,

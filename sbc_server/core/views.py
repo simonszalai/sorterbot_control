@@ -123,6 +123,13 @@ def log(request):
         if field.name == "log_type":
             new_log_args[field.name] = args[field.name]
             continue
+        # Retrieve 'bm_id' from args (if it exists)
+        if field.name == "bm_id":
+            try:
+                new_log_args[field.name] = args[field.name]
+            except KeyError:
+                new_log_args[field.name] = 0
+            continue
         # Field 'arm' expects an Arm object, so retrieve it based on 'arm_id' from args
         if field.name == "arm":
             new_log_args[field.name] = Arm.objects.get(arm_id=args["arm_id"])
