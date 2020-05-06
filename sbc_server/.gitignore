@@ -3,3 +3,4 @@
 .env
 static/main
 templates/main.html
+**/.DS_Store
