@@ -2,5 +2,7 @@
 **/*.sqlite3
 .env
 static/main
+static_prod
+staticfiles
 templates/main.html
 **/.DS_Store

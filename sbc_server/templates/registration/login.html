@@ -9,6 +9,7 @@
   </head>
   <body>
     <div class="limiter">
+      {% load static %}
       <div class="container-login" style="background: url('{% static 'login/images/bg-01.jpg' %}')">
         <div class="wrap-login">
           <form class="login-form" method="post" action="{% url 'login' %}">

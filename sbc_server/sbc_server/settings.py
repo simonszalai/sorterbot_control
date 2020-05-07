@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'iam_auth.postgresql'
 ]
 
 MIDDLEWARE = [
@@ -78,17 +79,41 @@ TEMPLATES = [
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 
-STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-]
+# STATICFILES_FINDERS = [
+#     'django.contrib.staticfiles.finders.FileSystemFinder',
+#     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+# ]
+
+# STATIC_ROOT = '/sbc_server/static_prod'
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'static', 'main'),
 )
+
+STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+
+# USE_S3 = os.getenv('USE_S3') == 'TRUE'
+
+# if True:
+#     # aws settings
+#     AWS_ACCESS_KEY_ID = "AKIAX2J6SYTESMPURJNC"
+#     AWS_SECRET_ACCESS_KEY = "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"
+#     AWS_STORAGE_BUCKET_NAME = 'sorterbot-static'
+#     AWS_DEFAULT_ACL = None
+#     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    
+#     # AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+#     # s3 static settings
+#     AWS_LOCATION = 'static'
+#     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+#     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# else:
+#     STATIC_URL = '/staticfiles/'
+#     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -113,12 +138,11 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'iam_auth.postgresql',
         'NAME': 'sorterbot',
-        'USER': os.getenv("DB_USER"),
-        'PASSWORD': os.getenv("DB_PASSWORD"),
-        'HOST': os.getenv("DB_HOST"),
-        'PORT': os.getenv("DB_PORT"),
+        'USER': 'postgres',
+        'HOST': 'asorterbot-postgres.ct2v58jbu37d.eu-central-1.rds.amazonaws.com',
+        'PORT': 5432,
     }
 }
 
