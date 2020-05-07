@@ -19,5 +19,6 @@ services:
       - django-network
     depends_on:
       - redis
+    # Uncomment for development
     volumes:
       - "/Users/simon/dev/sorterbot_control/sbc_server:/sbc_server"
