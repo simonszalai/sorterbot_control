@@ -15,6 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.conf.urls.static import static
+# from .settings import STATIC_URL, STATIC_ROOT
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,9 +25,4 @@ urlpatterns = [
     path('', include('core.urls')),
 ]
 
-#The following enable structural 'static' files while in development mode.
-# urlpatterns += patterns('',
-#     (r'^static/(?P<path>.*)$', 'django.views.static.serve', {
-#         'document_root': 'static', 'show_indexes': True
-#     }),
-# )
+# urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)

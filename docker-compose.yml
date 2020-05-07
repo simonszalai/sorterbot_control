@@ -23,5 +23,5 @@ services:
       - MIGRATE
       - USE_S3=1
 #  Uncomment for development
-    volumes:
-      - "/home/ec2-user/sorterbot_control/sbc_server:/sbc_server"
+    # volumes:
+    #   - "/home/ec2-user/sorterbot_control/sbc_server:/sbc_server"
