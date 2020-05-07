@@ -14,10 +14,14 @@ services:
   sorterbot_control:
     image: sorterbot_control:latest
     ports:
-      - 8000:8000
+      - 80:8000
     networks:
       - django-network
     depends_on:
       - redis
+    environment:
+      - MIGRATE
+      - USE_S3=1
+#  Uncomment for development
     volumes:
-      - "/Users/simon/dev/sorterbot_control/sbc_server:/sbc_server"
+      - "/home/ec2-user/sorterbot_control/sbc_server:/sbc_server"

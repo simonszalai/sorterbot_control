@@ -21,3 +21,10 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('', include('core.urls')),
 ]
+
+#The following enable structural 'static' files while in development mode.
+# urlpatterns += patterns('',
+#     (r'^static/(?P<path>.*)$', 'django.views.static.serve', {
+#         'document_root': 'static', 'show_indexes': True
+#     }),
+# )
