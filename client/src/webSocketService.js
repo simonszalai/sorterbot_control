@@ -37,7 +37,7 @@ class WebSocketService {
   }
 
   connect() {
-    const path = `ws://${window.location.host}:8000/websocket/
+    const path = `ws://${window.location.host}:80/websocket/`
 
     // Avoid making a duplicate connection if another component started it already
     if (this.socket !== null) return
