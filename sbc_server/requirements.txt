@@ -7,5 +7,6 @@ Django==3.0.5
 django-filter==2.2.0
 djangorestframework==3.11.0
 django-storages==1.9.1
+dsnparse==0.1.15
 psycopg2-binary==2.8.4
 python-dotenv==0.10.5

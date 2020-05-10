@@ -8,8 +8,9 @@ from asgiref.sync import async_to_sync
 class ECSManager:
     def __init__(self):
         # Define Clients
-        self.ecs_client = boto3.client('ecs')
-        self.ec2_client = boto3.client('ec2')
+        session = boto3.Session(profile_name="maggie")
+        self.ecs_client = session.client('ecs')
+        self.ec2_client = session.client('ec2')
 
         # Define waiters
         self.on_waiter = self.ecs_client.get_waiter('tasks_running')
@@ -18,14 +19,14 @@ class ECSManager:
         # Retrieve ECS Cluster by tag
         clusterArns = self.ecs_client.list_clusters()["clusterArns"]
         clusters = self.ecs_client.describe_clusters(clusters=clusterArns, include=["TAGS"])["clusters"]
+
         try:
             self.cluster = next(cluster for cluster in clusters if {"key": "SBID", "value": "SBCluster"} in cluster["tags"])["clusterArn"]
         except StopIteration:
             raise Exception('No ECS Cluster was found with the following tag: {"key": "SBID", "value": "SBCluster"}')
 
         # Retrieve Service of given Cluster by index (not by tag, because it needs the new ARN format enabled account wide, which would increase complexity)
-        serviceArns = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"]
-        self.service = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"][0] 
+        self.service = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"][0]
 
         # Retrieve channel layer for real time messaging
         self.channel_layer = channels.layers.get_channel_layer()

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import dsnparse
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -44,8 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'iam_auth.postgresql'
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -136,13 +136,15 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+conn = dsnparse.parse(os.getenv('PG_CONN'))
 DATABASES = {
     'default': {
-        'ENGINE': 'iam_auth.postgresql',
-        'NAME': 'sorterbot',
-        'USER': 'postgres',
-        'HOST': 'sorterbot-postgres.ct2v58jbu37d.eu-central-1.rds.amazonaws.com',
-        'PORT': 5432,
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': conn.database,
+        'USER': conn.username,
+        'PASSWORD': conn.password,
+        'HOST': conn.host,
+        'PORT': conn.port,
     }
 }
 

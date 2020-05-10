@@ -76,6 +76,9 @@ SorterBot Control Panel needs two resources, both of them included in the Free T
     # Install Git LFS
     sudo yum install git-lfs -y
     git lfs install
+
+    # Install jq to parse output from SSM
+    sudo yum install jq -y
     ```
     Note that if you copy-paste the code cell above, the last command will not be executed, you need to press enter at the end to execute the last command.
 1. Clone SorterBot Control repository:
@@ -103,37 +106,17 @@ While the Docker image is building, you can create the PostgreSQL database:
 1. Keep **Version** on the default value (*PostgreSQL 11.5-R1*) If the default changes in the future, make sure that you select a version with 11 as main version.
 1. Select *Free Tier* under **Templates**.
 1. Under **DB Instance Identifier**, give the DB a name, like *sorterbot-postgres*.
-1. Leave **Master username** the default (*postgres*), and add a **Master password**.
+1. Leave **Master username** the default (*postgres*), and add a **Master password**. You can also check **Auto-generate master password**, in which case you can retrieve the generated password after database creation. You will find it on the top of the window in a blue notification box by clicking **View credential details**.
 1. Leave the **DB instance class** on *db.t2.micro*, as this is the only one included in the Free Tier.
 1. Make sure that under **Virtual private cloud (VPC)** that VPC is selected that you created above (e.g. *sorterbot-vpc*).
 1. Click on **Additional connectivity configuration**, then select *Yes* under **Publicly accessible**.
 1. Under **VPC security group**, select *Create new*, and give it a name, for example *sorterbot-postgres-security-group*.
-1. Under **Database authentication** select *Password and IAM database authentication*.
 1. Click on **Additional configuration**, then add a name to **Initial database name**, like *sorterbot*.
 1. Uncheck **Enable automatic backups**, since storing backups costs money and it is not included in the Free Tier.
 1. Leave everything else on default, then click **Create database**.
 1. When the database is created, click on it's name, then on the **Connectivity & Security** tab, under **Security**, click on the name of the **VPC Security Groups**.
 1. After the security groups loaded, click on the ID of the security group that shows up, the click **Edit inbound rules**. You will find one existing rule, modify the **Source** of that to *Anywhere*. Click **Save rules**.
-1. To enable IAM authentication (which the Control Panel uses), you need to log in to the RDS instance. You can do that using a CLI tool from the EC2 instance that you created. 
-    1. In the CLI of the EC2 instance, install psql:
-        ```
-        sudo amazon-linux-extras install postgresql11 -y
-        ```
-    1. Connect to the postgres instance:
-        ```
-        psql -h [HOSTNAME] -p [PORT] -U [USERNAME] -W
-        ```
-        The command should look similar to this:
-        ```
-        psql -h sorterbot-postgres.ct2v58jbu37d.eu-central-1.rds.amazonaws.com -p 5432 -U postgres -W
-        ```
-        Then type the master password you set above for the DB.
-    1. Now you are logged in to the postgres instance. You need to add *postgres* user to the *rds_iam* permission group. Execute the following command:
-        ```
-        GRANT rds_iam to postgres;
-        ```
-    1. You can quit the session by typing `\q`.
-1. Finally, to enable SorterBot Cloud to access the database, you need to store a connection string in the AWS Parameter Store, which can be loaded later as an environment variable. To do that:
+1. Finally, to enable SorterBot Cloud and Control Panel access to the database, you need to store a connection string in the AWS Parameter Store, which can be loaded later as an environment variable. To do that:
     1. Go to **Services** > **Systems Manager**.
     1. On the left, click on **Parameter Store**.
     1. Click on **Create parameter**.
@@ -161,6 +144,7 @@ While the Docker image is building, you can create the PostgreSQL database:
                     "Effect": "Allow",
                     "Action": [
                         "ec2:DescribeNetworkInterfaces",
+                        "ssm:GetParameter",
                         "ecs:*"
                     ],
                     "Resource": "*"
