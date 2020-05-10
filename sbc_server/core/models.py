@@ -31,7 +31,7 @@ class Session(models.Model):
 
 
 class UI(models.Model):
-    arms_to_start = models.TextField()
+    arms_to_start = models.TextField(default="[]")
     open_logs = models.CharField(max_length=40, default="")
 
     def save(self, *args, **kwargs):
