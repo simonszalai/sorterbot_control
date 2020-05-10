@@ -125,8 +125,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            # 'hosts': [('redis', 6379)],
-            'hosts': [('localhost', 6379)],
+            'hosts': [('localhost' if DEBUG else 'redis', 6379)],
             'capacity': 1500,
             'expiry': 10
         }
@@ -141,7 +140,7 @@ DATABASES = {
         'ENGINE': 'iam_auth.postgresql',
         'NAME': 'sorterbot',
         'USER': 'postgres',
-        'HOST': 'asorterbot-postgres.ct2v58jbu37d.eu-central-1.rds.amazonaws.com',
+        'HOST': 'sorterbot-postgres.ct2v58jbu37d.eu-central-1.rds.amazonaws.com',
         'PORT': 5432,
     }
 }
