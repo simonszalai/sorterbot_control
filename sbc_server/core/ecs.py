@@ -8,34 +8,27 @@ from asgiref.sync import async_to_sync
 class ECSManager:
     def __init__(self):
         # Define Clients
-        self.ecs_client = boto3.client('ecs', aws_access_key_id=os.getenv("AMAZON_ACCESS_KEY_ID"), aws_secret_access_key=os.getenv("AMAZON_SECRET_ACCESS_KEY"))
-        self.ec2_client = boto3.client('ec2', aws_access_key_id=os.getenv("AMAZON_ACCESS_KEY_ID"), aws_secret_access_key=os.getenv("AMAZON_SECRET_ACCESS_KEY"))
+        self.ecs_client = boto3.client('ecs')
+        self.ec2_client = boto3.client('ec2')
 
         # Define waiters
         self.on_waiter = self.ecs_client.get_waiter('tasks_running')
         self.off_waiter = self.ecs_client.get_waiter('tasks_stopped')
 
-        # Retrieve Cluster ARNs
-        self.cluster = self.ecs_client.list_clusters()["clusterArns"][0]
+        # Retrieve ECS Cluster by tag
+        clusterArns = self.ecs_client.list_clusters()["clusterArns"]
+        clusters = self.ecs_client.describe_clusters(clusters=clusterArns, include=["TAGS"])["clusters"]
+        try:
+            self.cluster = next(cluster for cluster in clusters if {"key": "SBID", "value": "SBCluster"} in cluster["tags"])["clusterArn"]
+        except StopIteration:
+            raise Exception('No ECS Cluster was found with the following tag: {"key": "SBID", "value": "SBCluster"}')
 
-        # Retrieve Services of given Cluster
-        self.service = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"][0]
+        # Retrieve Service of given Cluster by index (not by tag, because it needs the new ARN format enabled account wide, which would increase complexity)
+        serviceArns = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"]
+        self.service = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"][0] 
 
         # Retrieve channel layer for real time messaging
         self.channel_layer = channels.layers.get_channel_layer()
-
-        # # TODO: if server restarts after a task start button was clicked but before the task was added, this fails
-        # taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
-        # if len(taskArns) == 0:
-        #     pass
-        #     # UI(cloud_status="off").save()
-        # else:
-        #     tasksDescriptions = self.ecs_client.describe_tasks(cluster=self.cluster, tasks=taskArns)["tasks"]
-        #     if tasksDescriptions[0]["attachments"][0]["status"] == "RUNNING":
-        #         public_ip = self.get_public_ip(taskArns)
-        #         UI(cloud_status=public_ip).save()
-        #     else:
-        #         UI(cloud_status="startLoading").save()
 
         async_to_sync(self.channel_layer.group_send)("default", {
             "type": "push.cloud.status",
@@ -56,14 +49,13 @@ class ECSManager:
             if desired_count == 0:
                 return "stopLoading"
             else:
-                if tasksDescriptions[0]["attachments"][0]["status"] == "RUNNING":
+                if tasksDescriptions[0]["lastStatus"] == "RUNNING":
                     return self.get_public_ip(taskArns)
                 else:
                     return "startLoading"
 
     def start(self):
         print("Turning on...")
-        # UI(cloud_status="startLoading").save()
 
         # Update desired task count
         desired_count = 0
@@ -90,7 +82,6 @@ class ECSManager:
         self.on_waiter.wait(cluster=self.cluster, tasks=[taskArns[0]])
         print("Task started.")
         public_ip = self.get_public_ip(taskArns)
-        # UI(cloud_status=public_ip).save()
 
         async_to_sync(self.channel_layer.group_send)("default", {
             "type": "push.cloud.status",
@@ -101,7 +92,7 @@ class ECSManager:
         # Retrieve Network Interface ID from given Task
         tasksDescriptions = self.ecs_client.describe_tasks(cluster=self.cluster, tasks=taskArns)["tasks"]
         network_interface_id = next(detail["value"] for detail in tasksDescriptions[0]["attachments"][0]["details"] if detail["name"] == "networkInterfaceId")
-        print("Network Interface ID retrieved!")
+        print(f"Network Interface ID retrieved: {network_interface_id}")
 
         # Retrieve Public IP from given Network Interface ID
         network_interfaces = self.ec2_client.describe_network_interfaces(NetworkInterfaceIds=[network_interface_id])["NetworkInterfaces"]
@@ -120,7 +111,6 @@ class ECSManager:
             sleep(1)
         print("Service desired task count updated!")
 
-        # UI(cloud_status="stopLoading").save()
         async_to_sync(self.channel_layer.group_send)("default", {
             "type": "push.cloud.status",
             "status": "stopLoading"
@@ -129,7 +119,6 @@ class ECSManager:
         taskArns = self.ecs_client.list_tasks(cluster=self.cluster)["taskArns"]
         self.off_waiter.wait(cluster=self.cluster, tasks=[taskArns[0]])
         print("Task stopped.")
-        # UI(cloud_status="off").save()
 
         async_to_sync(self.channel_layer.group_send)("default", {
             "type": "push.cloud.status",

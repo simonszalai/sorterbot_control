@@ -153,7 +153,7 @@ class RPiConsumer(WebsocketConsumer):
 
         if command_in == "get_cloud_ip":
             cloud_ip = get_cloud_ip()
-            cloud_ip = "192.168.178.19"
+            # cloud_ip = "192.168.178.19"
             self.send(text_data=json.dumps(cloud_ip))
 
         elif command_in == "send_conn_status":
