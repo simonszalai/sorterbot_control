@@ -8,7 +8,7 @@ from asgiref.sync import async_to_sync
 class ECSManager:
     def __init__(self):
         # Define Clients
-        session = boto3.Session(profile_name="maggie")
+        session = boto3.Session()  # profile_name="maggie"
         self.ecs_client = session.client('ecs')
         self.ec2_client = session.client('ec2')
 
