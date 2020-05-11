@@ -21,7 +21,6 @@ services:
       - redis
     environment:
       - MIGRATE
-      - USE_S3=1
 #  Uncomment for hot code reload
     volumes:
       - "/home/ec2-user/sorterbot_control/sbc_server/core:/sbc_server/core"

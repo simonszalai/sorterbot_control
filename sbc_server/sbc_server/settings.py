@@ -11,12 +11,17 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import boto3
 import dsnparse
 from dotenv import load_dotenv
 from pathlib import Path
 
 # Load environment variables
 load_dotenv(dotenv_path=Path(__file__).parent.parent.joinpath(".env"))
+
+# Load parameters from Parameter Store
+ssm = boto3.client('ssm')
+PG_CONN= ssm.get_parameter(Name='SorterBotCloudPostgres', WithDecryption=True)['Parameter']['Value']
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,7 +34,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'r!_m#+75!+b#u6d2rpx^un+ky@b#05#d%!*fz_$0x$$jiy0wt7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -90,31 +95,29 @@ TEMPLATES = [
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'static', 'main'),
+    # os.path.join(BASE_DIR, 'static', 'main'),
 )
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 # USE_S3 = os.getenv('USE_S3') == 'TRUE'
 
-# if True:
-#     # aws settings
-#     AWS_ACCESS_KEY_ID = "AKIAX2J6SYTESMPURJNC"
-#     AWS_SECRET_ACCESS_KEY = "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"
-#     AWS_STORAGE_BUCKET_NAME = 'sorterbot-static'
-#     AWS_DEFAULT_ACL = None
-#     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+if DEBUG:
+    STATIC_URL = '/static/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+else:
+    # aws settings
+    AWS_STORAGE_BUCKET_NAME = 'sorterbot-static'
+    AWS_DEFAULT_ACL = None
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     
-#     # AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
-#     # s3 static settings
-#     AWS_LOCATION = 'static'
-#     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
-#     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# else:
-#     STATIC_URL = '/staticfiles/'
-#     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+    # s3 static settings
+    AWS_LOCATION = 'static'
+    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -136,7 +139,7 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-conn = dsnparse.parse(os.getenv('PG_CONN'))
+conn = dsnparse.parse(PG_CONN)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
