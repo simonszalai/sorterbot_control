@@ -1,3 +1,4 @@
+import os
 import json
 from channels.generic.websocket import WebsocketConsumer
 from django.core.serializers.json import DjangoJSONEncoder
@@ -14,8 +15,10 @@ from .s3 import S3
 
 
 db = DB()
-s3 = S3()
-ecsManager = ECSManager()
+
+if not os.getenv("DISABLE_AWS"):
+    s3 = S3()
+    ecsManager = ECSManager()
 
 
 class SBCConsumer(WebsocketConsumer):
@@ -65,22 +68,24 @@ class SBCConsumer(WebsocketConsumer):
             stitch_name = f'{data["log_type"].lower()}_stitch.jpg'
             content = {
                 "command": "stitch",
-                "stitch_url": s3.get_signed_url(s3_path=f'{data["arm_id"]}/{session.session_id}/{stitch_name}')
+                "stitch_url": "" if os.getenv("DISABLE_AWS") else s3.get_signed_url(s3_path=f'{data["arm_id"]}/{session.session_id}/{stitch_name}')
             }
             self.send(text_data=json.dumps(content))
 
         elif command_in == "fetch_cloud_status":
             content = {
                 "command": "cloud_status",
-                "cloudStatus": ecsManager.status()
+                "cloudStatus": "Local Mode" if os.getenv("DISABLE_AWS") else ecsManager.status()
             }
             self.send(text_data=json.dumps(content))
 
         elif command_in == "start_cloud":
-            ecsManager.start()
+            if not os.getenv("DISABLE_AWS"):
+                ecsManager.start()
 
         elif command_in == "stop_cloud":
-            ecsManager.stop()
+            if not os.getenv("DISABLE_AWS"):
+                ecsManager.stop()
 
         elif command_in == "start_session":
             sessions_to_start = json.loads(model_to_dict(UI.objects.all()[0])["arms_to_start"])

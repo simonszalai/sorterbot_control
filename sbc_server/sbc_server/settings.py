@@ -20,8 +20,12 @@ from pathlib import Path
 load_dotenv(dotenv_path=Path(__file__).parent.parent.joinpath(".env"))
 
 # Load parameters from Parameter Store
-ssm = boto3.client('ssm')
-PG_CONN= ssm.get_parameter(Name='SorterBotCloudPostgres', WithDecryption=True)['Parameter']['Value']
+print("####", os.getenv("DISABLE_AWS"))
+if os.getenv("DISABLE_AWS"):
+    PG_CONN = f"postgresql://postgres:{os.getenv('PG_PASS')}@postgres-db:5432/postgres"
+else:
+    ssm = boto3.client('ssm')
+    PG_CONN = ssm.get_parameter(Name='SorterBotCloudPostgres', WithDecryption=True)['Parameter']['Value']
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -6,7 +6,7 @@ import WS from 'webSocketService'
 
 
 const CloudStatusComponent = (props) => {
-  const offComponent = (
+  const OffComponent = (
     <CloudStatusWrapper faded={props.faded}>
       <Text>
         <Span>Start SorterBot Cloud</Span>
@@ -18,67 +18,55 @@ const CloudStatusComponent = (props) => {
     </CloudStatusWrapper>
   )
 
+  const OnComponent = (
+    <CloudStatusWrapper faded={props.faded}>
+      <Text>
+        <Span>SorterBot Cloud is running at: </Span>
+        {props.cloudStatus}
+      </Text>
+      <Btn
+        onClick={props.stopCloud}
+        src={require('assets/stop_white.svg')}
+      />
+    </CloudStatusWrapper>
+  )
+
+  const LocalComponent = (
+    <CloudStatusWrapper faded={props.faded}>
+      <Text>
+        <Span>SorterBot Cloud is running at</Span> localhost
+      </Text>
+    </CloudStatusWrapper>
+  )
+
+  const LoadingComponent = (props) => (
+    <CloudStatusWrapper faded={props.faded}>
+      <Text>
+        <Span>{props.statusText}</Span>
+      </Text>
+      <ClipLoader
+        css={{ marginLeft: 15 }}
+        size={20}
+        color={"#fff"}
+        loading={true}
+      />
+    </CloudStatusWrapper>
+  )
+
   switch (props.cloudStatus) {
     case 'startLoading':
-      return (
-        <CloudStatusWrapper faded={props.faded}>
-          <Text>
-            <Span>SorterBot Cloud is starting...</Span>
-          </Text>
-          <ClipLoader
-            css={{ marginLeft: 15 }}
-            size={20}
-            color={"#fff"}
-            loading={true}
-          />
-        </CloudStatusWrapper>
-      )
+      return <LoadingComponent statusText="SorterBot Cloud is starting..." />
     case 'stopLoading':
-      return (
-        <CloudStatusWrapper faded={props.faded}>
-          <Text>
-            <Span>SorterBot Cloud is shutting down...</Span>
-          </Text>
-          <ClipLoader
-            css={{ marginLeft: 15 }}
-            size={20}
-            color={"#fff"}
-            loading={true}
-          />
-        </CloudStatusWrapper>
-      )
+      return <LoadingComponent statusText="SorterBot Cloud is shutting down..." />
     case 'off':
-      return offComponent
+      return OffComponent
     case 'loading':
-      return (
-        <CloudStatusWrapper faded={props.faded}>
-          <Text>
-            <Span>Loading SorterBot status...</Span>
-          </Text>
-          <ClipLoader
-            css={{ marginLeft: 15 }}
-            size={20}
-            color={"#fff"}
-            loading={true}
-          />
-        </CloudStatusWrapper>
-      )
+      return <LoadingComponent statusText="Loading SorterBot status..." />
     default:
       if (props.cloudStatus) {
-        return (
-          <CloudStatusWrapper faded={props.faded}>
-            <Text>
-              <Span>SorterBot Cloud is running at: </Span>
-              {props.cloudStatus}
-            </Text>
-            <Btn
-              onClick={props.stopCloud}
-              src={require('assets/stop_white.svg')}
-            />
-          </CloudStatusWrapper>
-        )
+        return LocalComponent
       } else {
-        return offComponent
+        return OffComponent
       }
   }
 }

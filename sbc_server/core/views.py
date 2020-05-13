@@ -18,7 +18,9 @@ from .models import Arm, Session, UI, Log
 from .serializers import ArmSerializer, SessionSerializer, UISerializer
 from .ecs import ECSManager
 
-ecsManager = ECSManager()
+
+if not os.getenv("DISABLE_AWS"):
+    ecsManager = ECSManager()
 
 
 @login_required
@@ -48,7 +50,7 @@ def get_cloud_ip(request):
     new_arm.save()
 
     # Get SorterBot Cloud status from DB
-    cloud_status = ecsManager.status()
+    cloud_status = "Local Mode" if os.getenv("DISABLE_AWS") else ecsManager.status()
 
     # Check if status is a valid IP by trying to parse
     status_res = False

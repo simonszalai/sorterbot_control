@@ -1,3 +1,4 @@
+import os
 import json
 import socket
 from datetime import datetime
@@ -9,7 +10,8 @@ from .models import Arm, Session, UI, Log
 from .ecs import ECSManager
 
 
-ecsManager = ECSManager()
+if not os.getenv("DISABLE_AWS"):
+    ecsManager = ECSManager()
 
 
 def register_arm(arm_id):
@@ -20,7 +22,7 @@ def register_arm(arm_id):
 
 def get_cloud_ip():
     # Get SorterBot Cloud status from DB
-    cloud_status = ecsManager.status()
+    cloud_status = ecsManager.status() if not os.getenv("DISABLE_AWS") else "Local Mode"
 
     # Check if status is a valid IP by trying to parse
     cloud_ip = 0
