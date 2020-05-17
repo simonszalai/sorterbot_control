@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
+import moment from 'moment'
 import { css } from '@emotion/core'
 import Fade from 'react-reveal/Fade'
 import WS from 'webSocketService'
@@ -17,13 +18,13 @@ const SessionsListComponent = (props) => {
     WS.waitForSocketConnection(() => {
         WS.sendMessage({ command: 'fetch_arms' })
     })
-  }, [])
+  }, [props.selectedArm])
 
   const onSessionsPushed = (data) => {
     // Only add pushed sessions to UI if they belong to the currently open arm
-    // if (data.armId === props.selectedArm) {
+    if (data.armId === props.selectedArm) {
       setSessions(data.sessionsOfArm)
-    // }
+    }
   }
 
   const onButtonClick = (e, label, session) => {
@@ -50,7 +51,7 @@ const SessionsListComponent = (props) => {
     WS.sendMessage({
       command,
       arm_id: props.selectedArm,
-      sess_id: session.id,
+      session_id: session.id,
       log_type: label
     })
   }
@@ -83,8 +84,8 @@ const SessionsListComponent = (props) => {
             <Session onClick={() => onSessionClick(session.id)} key={session.id}>
               <Header isExpanded={props.expandedSessionId === session.id}>
                 <div>
-                  <SessionId>Session ID</SessionId>
-                  <StartTime>{session.session_id}</StartTime>
+                  <SessionId>Session {session.id}</SessionId>
+                  <StartTime>{moment(session.session_started).local().format('YYYY-MM-DD HH:mm:ss')}</StartTime>
                 </div>
                 <Status content={session.status}>{session.status}</Status>
                 <Dropdown
@@ -235,7 +236,7 @@ const Status = styled.div(props => {
 })
 
 const expandedBody = () => css`
-  max-height: 300px;
+  max-height: 500px;
 `
 
 const Body = styled.div`

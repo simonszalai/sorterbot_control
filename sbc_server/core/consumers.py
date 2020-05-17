@@ -54,30 +54,30 @@ class SBCConsumer(WebsocketConsumer):
                 "armId": data["arm_id"],
                 "sessionsOfArm": db.get_sessions_of_arm(data["arm_id"])
             }
-            self.send(text_data=json.dumps(content))
+            self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
         elif command_in == "fetch_logs":
             content = {
                 "command": "logs",
-                "logs": db.get_logs(arm_id=data["arm_id"], session_id=data["sess_id"], log_type=data["log_type"])
+                "logs": db.get_logs(arm_id=data["arm_id"], session_id=data["session_id"], log_type=data["log_type"])
             }
-            self.send(text_data=json.dumps(content))
+            self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
         elif command_in == "fetch_stitch":
-            session = db.get_session_by_id(data["sess_id"])
+            session = db.get_session_by_id(data["session_id"])
             stitch_name = f'{data["log_type"].lower()}_stitch.jpg'
             content = {
                 "command": "stitch",
-                "stitch_url": "" if os.getenv("DISABLE_AWS") else s3.get_signed_url(s3_path=f'{data["arm_id"]}/{session.session_id}/{stitch_name}')
+                "stitch_url": "" if os.getenv("DISABLE_AWS") else s3.get_signed_url(s3_path=f'{data["arm_id"]}/{session.id}/{stitch_name}')
             }
-            self.send(text_data=json.dumps(content))
+            self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
         elif command_in == "fetch_cloud_status":
             content = {
                 "command": "cloud_status",
                 "cloudStatus": "Local Mode" if os.getenv("DISABLE_AWS") else ecsManager.status()
             }
-            self.send(text_data=json.dumps(content))
+            self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
         elif command_in == "start_cloud":
             if not os.getenv("DISABLE_AWS"):
@@ -96,7 +96,6 @@ class SBCConsumer(WebsocketConsumer):
             UI(open_logs=data["open_logs"]).save()
 
         elif command_in == "logout":
-            print("logout")
             async_to_sync(logout)(self.scope)
             return redirect("/")
 
@@ -105,7 +104,7 @@ class SBCConsumer(WebsocketConsumer):
             "command": "arms",
             "arms": db.get_arms()
         }
-        self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))  # DjangoJSONEncoder to serialize Datetime properly
+        self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
     def push_sessions_of_arm(self, event):
         content = {
@@ -113,21 +112,21 @@ class SBCConsumer(WebsocketConsumer):
             "armId": event["arm_id"],
             "sessionsOfArm": db.get_sessions_of_arm(arm_id=event["arm_id"])
         }
-        self.send(text_data=json.dumps(content))
+        self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
     def push_logs(self, event):
         content = {
             "command": "logs",
-            "logs": db.get_logs(arm_id=event["arm_id"], session_id=event["sess_id"], log_type=event["log_type"])
+            "logs": db.get_logs(arm_id=event["arm_id"], session_id=event["session_id"], log_type=event["log_type"])
         }
-        self.send(text_data=json.dumps(content))
+        self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
     def push_cloud_status(self, event):
         content = {
             "command": "cloud_status",
             "cloud_status": event["status"]
         }
-        self.send(text_data=json.dumps(content))
+        self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
     def push_arm_status(self, event):
         content = {
@@ -135,14 +134,13 @@ class SBCConsumer(WebsocketConsumer):
             "armId": event["arm_id"],
             "cloudConnectSuccess": event["cloud_connect_success"]
         }
-        self.send(text_data=json.dumps(content))
+        self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
 
 class RPiConsumer(WebsocketConsumer):
     groups = ["rpi"]
 
     def connect(self):
-        print("Connecting RPi")
         self.channel_layer.group_add("default", self.channel_name)
         self.accept()
 

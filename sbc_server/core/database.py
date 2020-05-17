@@ -8,7 +8,7 @@ class DB:
         return [model_to_dict(arm) for arm in arms]
 
     def get_sessions_of_arm(self, arm_id):
-        sessions_of_arm = Session.objects.filter(arm=arm_id).order_by("-session_id")
+        sessions_of_arm = Session.objects.filter(arm=arm_id).order_by("-session_started")
         return [model_to_dict(session) for session in sessions_of_arm]
 
     def get_logs(self, arm_id, session_id, log_type):

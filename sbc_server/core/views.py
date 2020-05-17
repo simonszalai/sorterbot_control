@@ -184,6 +184,22 @@ class SessionViewSet(viewsets.ModelViewSet):
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
 
+    def create(self, request):
+        try:
+            # Convert timestamp to datetime
+            request.data["session_started"] = datetime.fromtimestamp(request.data["session_started"])
+
+            # Replace arm_id with Arm instance
+            request.data["arm"] = Arm.objects.get(arm_id=request.data["arm"])
+
+            # Save new session
+            new_session = Session(**request.data)
+            new_session.save()
+
+            return Response(json.dumps({"new_session_id": new_session.id}), status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+
 
 class UIViewSet(viewsets.ModelViewSet):
     queryset = UI.objects.all()

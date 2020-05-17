@@ -16,7 +16,7 @@ class Arm(models.Model):
 
 class Session(models.Model):
     arm = models.ForeignKey(Arm, on_delete=models.CASCADE)
-    session_id = models.CharField(max_length=40)
+    session_started = models.DateTimeField()
     status = models.CharField(max_length=20, blank=True)
     before_img_url = models.CharField(max_length=300, blank=True)
     after_img_url = models.CharField(max_length=300, blank=True)
@@ -80,7 +80,7 @@ class Log(models.Model):
                     {
                         "type": "push.logs",
                         "arm_id": self.arm.arm_id,
-                        "sess_id": self.session.id,
+                        "session_id": self.session.id,
                         "log_type": self.log_type
                     }
                 )
