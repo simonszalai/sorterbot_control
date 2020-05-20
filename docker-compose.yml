@@ -22,7 +22,7 @@ services:
       - redis
     environment:
       - MIGRATE
-      - DISABLE_AWS=1
+      - DISABLE_AWS=$DISABLE_AWS
       - PG_PASS=$PG_PASS
 #  Uncomment for hot code reload
     volumes:
