@@ -14,8 +14,8 @@ services:
   sorterbot_control:
     image: sorterbot_control:latest
     ports:
-      # - 80:8000
-      - 8000:8000
+      - 80:8000
+      # - 8000:8000
     networks:
       - django-network
     depends_on:
