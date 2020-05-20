@@ -25,7 +25,7 @@ if int(os.getenv("DISABLE_AWS")):
     PG_CONN = f"postgresql://postgres:{os.getenv('PG_PASS')}@sorterbot-postgres.cvfafotuevs6.eu-central-1.rds.amazonaws.com:5432/sorterbot"
 else:
     ssm = boto3.client('ssm')
-    PG_CONN = ssm.get_parameter(Name='SorterBotCloudPostgres', WithDecryption=True)['Parameter']['Value']
+    PG_CONN = ssm.get_parameter(Name='PG_CONN', WithDecryption=True)['Parameter']['Value']
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
