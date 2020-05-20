@@ -20,9 +20,9 @@ from pathlib import Path
 load_dotenv(dotenv_path=Path(__file__).parent.parent.joinpath(".env"))
 
 # Load parameters from Parameter Store
-print("####", os.getenv("DISABLE_AWS"))
-if os.getenv("DISABLE_AWS"):
-    PG_CONN = f"postgresql://postgres:{os.getenv('PG_PASS')}@postgres-db:5432/postgres"
+if int(os.getenv("DISABLE_AWS")):
+    # PG_CONN = f"postgresql://postgres:{os.getenv('PG_PASS')}@postgres-db:5432/postgres"
+    PG_CONN = f"postgresql://postgres:{os.getenv('PG_PASS')}@sorterbot-postgres.cvfafotuevs6.eu-central-1.rds.amazonaws.com:5432/sorterbot"
 else:
     ssm = boto3.client('ssm')
     PG_CONN = ssm.get_parameter(Name='SorterBotCloudPostgres', WithDecryption=True)['Parameter']['Value']
