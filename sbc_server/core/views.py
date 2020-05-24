@@ -196,7 +196,7 @@ class SessionViewSet(viewsets.ModelViewSet):
             new_session = Session(**request.data)
             new_session.save()
 
-            return Response(json.dumps({"new_session_id": new_session.id}), status=status.HTTP_200_OK)
+            return Response(json.dumps({"new_session_id": f"S{new_session.id}"}), status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
 
