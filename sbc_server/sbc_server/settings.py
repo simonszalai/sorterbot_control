@@ -22,7 +22,7 @@ load_dotenv(dotenv_path=Path(__file__).parent.parent.joinpath(".env"))
 # Load parameters from Parameter Store
 if int(os.getenv("DISABLE_AWS")):
     # PG_CONN = f"postgresql://postgres:{os.getenv('PG_PASS')}@postgres-db:5432/postgres"
-    PG_CONN = f"postgresql://postgres:{os.getenv('PG_PASS')}@sorterbot-postgres.cvfafotuevs6.eu-central-1.rds.amazonaws.com:5432/sorterbot"
+    PG_CONN = f"postgresql://postgres:eOf5IxOCcIoAtxqbVPUO6MIRvfYIE2rLKIL9@sorterbot-postgres.cvfafotuevs6.eu-central-1.rds.amazonaws.com:5432/sorterbot"
 else:
     ssm = boto3.client('ssm')
     PG_CONN = ssm.get_parameter(Name='PG_CONN', WithDecryption=True)['Parameter']['Value']
@@ -35,7 +35,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'r!_m#+75!+b#u6d2rpx^un+ky@b#05#d%!*fz_$0x$$jiy0wt7'
+SECRET_KEY = os.getenv("DJANGO_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -44,7 +44,6 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'channels',
     'core.apps.SorterbotControlPanelConfig',
@@ -88,37 +87,18 @@ TEMPLATES = [
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-# STATIC_URL = '/static/'
-
-# STATICFILES_FINDERS = [
-#     'django.contrib.staticfiles.finders.FileSystemFinder',
-#     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-# ]
-
-# STATIC_ROOT = '/sbc_server/static_prod'
-
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
-    # os.path.join(BASE_DIR, 'static', 'main'),
 )
-
-# STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-# STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
-
-# USE_S3 = os.getenv('USE_S3') == 'TRUE'
 
 if DEBUG:
     STATIC_URL = '/static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 else:
-    # aws settings
     AWS_STORAGE_BUCKET_NAME = 'sorterbot-static'
     AWS_DEFAULT_ACL = None
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-    
-    # AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
-    # s3 static settings
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
     AWS_LOCATION = 'static'
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
