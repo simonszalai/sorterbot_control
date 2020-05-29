@@ -21,9 +21,11 @@ services:
       - redis
     environment:
       - MIGRATE
-      - DISABLE_AWS=$DISABLE_AWS
+      - MODE=$MODE
       - PG_PASS=$PG_PASS
 #  Uncomment for hot code reload
     volumes:
       - "./sbc_server/core:/sbc_server/core"
       - "./sbc_server/sbc_server:/sbc_server/sbc_server"
+      - "./sbc_server/.env:/sbc_server/.env"
+      - "~/.aws:/root/.aws"

@@ -16,7 +16,7 @@ RUN pip3 install -r requirements.txt
 
 EXPOSE 8000
 ENV PYTHONUNBUFFERED 1
-ENV DISABLE_AWS=0
+ENV MODE="local"
 ENV AWS_DEFAULT_REGION "eu-central-1"
 ENV PG_PASS=
 
