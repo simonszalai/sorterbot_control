@@ -103,7 +103,7 @@ To build the Docker image of Sorterbot Cloud, you will need the trained weights,
 1. Click on **Users**, then **Add user**.
 1. Give the user a name, like *SorterBotCloudUser* and select *Programmatic access* as **Access type**.
 1. Click **Next: Permissions**, under **Set permissions** click *Attach existing policies directly*, then select the following policies: *AmazonS3FullAccess* and *AmazonEC2ContainerRegistryFullAccess*. Finally click **Next: Tags**, **Next: Review**, then **Create user**. Do NOT click on **Close**!
-1. To make these credentials available on your local machine, run the following commandin your Terminal:
+1. To make these credentials available on your local machine, run the following command in your Terminal:
     ```
     aws configure --profile sorterbotcloud
     ```
@@ -291,7 +291,7 @@ SorterBot Cloud service does the image processing, so it needs more powerful har
 ### Start SorterBot
 1. In the SSH terminal on the EC2 instance, you need to retrieve the postgres connection string from the parameter store and assign it to an environment variable. To do that execute a command conforming the following structure:
     ```
-    export PG_CONN=$(aws ssm get-parameter --name []PARAMETER_NAME] --region [AWS_REGION] --with-decryption | jq -r ".Parameter.Value")
+    export PG_CONN=$(aws ssm get-parameter --name [PARAMETER_NAME] --region [AWS_REGION] --with-decryption | jq -r ".Parameter.Value")
     ```
     For example:
     ```

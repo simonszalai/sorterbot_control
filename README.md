@@ -34,3 +34,11 @@ Here you can find the instructions how to manually create the neccessary resourc
     MIGRATE=1 docker-compose up
     ```
     If you are not sure, apply the migrations, it will not cause any problems even if you applied them before.
+
+
+
+
+
+```
+aws ec2 create-key-pair --key-name sorterbot --query 'KeyMaterial' --output text > ~/.aws/ssh_sorterbot_ec2.pem
+```
