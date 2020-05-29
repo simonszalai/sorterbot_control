@@ -16,9 +16,11 @@ from .s3 import S3
 
 db = DB()
 
-if not os.getenv("DISABLE_AWS"):
-    s3 = S3()
+if os.getenv("MODE") == "production":
     ecsManager = ECSManager()
+
+if os.getenv("MODE") != "local":
+    s3 = S3()
 
 
 class SBCConsumer(WebsocketConsumer):
@@ -65,26 +67,27 @@ class SBCConsumer(WebsocketConsumer):
 
         elif command_in == "fetch_stitch":
             session = db.get_session_by_id(data["session_id"])
-            stitch_name = f'{data["log_type"].lower()}_stitch.jpg'
+            stitch_name = f'{"original" if data["log_type"].lower() == "before" else data["log_type"].lower()}_stitch.jpg'
+            print("stisthc", f'{data["arm_id"]}/S{session.id}/{stitch_name}')
             content = {
                 "command": "stitch",
-                "stitch_url": "" if os.getenv("DISABLE_AWS") else s3.get_signed_url(s3_path=f'{data["arm_id"]}/{session.id}/{stitch_name}')
+                "stitch_url": s3.get_signed_url(s3_path=f'{data["arm_id"]}/S{session.id}/{stitch_name}') if os.getenv("MODE") != "local" else ""
             }
             self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
         elif command_in == "fetch_cloud_status":
             content = {
                 "command": "cloud_status",
-                "cloudStatus": "Local Mode" if os.getenv("DISABLE_AWS") else ecsManager.status()
+                "cloudStatus": ecsManager.status() if os.getenv("MODE") == "production" else "Local Mode"
             }
             self.send(text_data=json.dumps(content, cls=DjangoJSONEncoder))
 
         elif command_in == "start_cloud":
-            if not os.getenv("DISABLE_AWS"):
+            if os.getenv("MODE") == "production":
                 ecsManager.start()
 
         elif command_in == "stop_cloud":
-            if not os.getenv("DISABLE_AWS"):
+            if os.getenv("MODE") == "production":
                 ecsManager.stop()
 
         elif command_in == "start_session":

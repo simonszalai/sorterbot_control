@@ -17,15 +17,25 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Load environment variables
-load_dotenv(dotenv_path=Path(__file__).parent.parent.joinpath(".env"))
+load_dotenv(dotenv_path=Path(__file__).parents[1].joinpath(".env"))
 
-# Load parameters from Parameter Store
-if int(os.getenv("DISABLE_AWS")):
-    # PG_CONN = f"postgresql://postgres:{os.getenv('PG_PASS')}@postgres-db:5432/postgres"
-    PG_CONN = f"postgresql://postgres:eOf5IxOCcIoAtxqbVPUO6MIRvfYIE2rLKIL9@sorterbot-postgres.cvfafotuevs6.eu-central-1.rds.amazonaws.com:5432/sorterbot"
+# Load PG_CONN
+if os.getenv("MODE") == "local":
+    # Load PG_CONN from Environment Variable in local mode
+    PG_CONN = os.getenv("PG_CONN")
 else:
+    # Load PG_CONN from Parameter Store in development and production mode
     ssm = boto3.client('ssm')
     PG_CONN = ssm.get_parameter(Name='PG_CONN', WithDecryption=True)['Parameter']['Value']
+
+# Load DJANGO_SECRET
+if os.getenv("MODE") == "production":
+    # Load DJANGO_SECRET from Parameter Store in production mode
+    ssm = boto3.client('ssm')
+    SECRET_KEY = ssm.get_parameter(Name='DJANGO_SECRET', WithDecryption=True)['Parameter']['Value']
+else:
+    # Load DJANGO_SECRET from Environment Variable in local and development mode
+    SECRET_KEY = os.getenv("DJANGO_SECRET")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -34,11 +44,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET")
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = False if os.getenv("MODE") == "production" else True
 
 ALLOWED_HOSTS = ['*']
 
@@ -91,10 +98,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
 
-if DEBUG:
-    STATIC_URL = '/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-else:
+if os.getenv("MODE") == "production":
     AWS_STORAGE_BUCKET_NAME = 'sorterbot-static'
     AWS_DEFAULT_ACL = None
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
@@ -102,6 +106,9 @@ else:
     AWS_LOCATION = 'static'
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+else:
+    STATIC_URL = '/static/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -113,7 +120,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('localhost' if DEBUG else 'redis', 6379)],
+            'hosts': [('redis', 6379)],
             'capacity': 1500,
             'expiry': 10
         }

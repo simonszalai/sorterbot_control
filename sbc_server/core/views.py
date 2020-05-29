@@ -19,7 +19,7 @@ from .serializers import ArmSerializer, SessionSerializer, UISerializer
 from .ecs import ECSManager
 
 
-if not os.getenv("DISABLE_AWS"):
+if os.getenv("MODE") == "production":
     ecsManager = ECSManager()
 
 
@@ -50,7 +50,7 @@ def get_cloud_ip(request):
     new_arm.save()
 
     # Get SorterBot Cloud status from DB
-    cloud_status = "Local Mode" if os.getenv("DISABLE_AWS") else ecsManager.status()
+    cloud_status = ecsManager.status() if os.getenv("MODE") == "production" else "Local Mode"
 
     # Check if status is a valid IP by trying to parse
     status_res = False
@@ -104,8 +104,15 @@ def send_connection_status(request):
 def log(request):
     is_final_log = False
     new_log_args = {}
+
     args = json.loads(request.data["args"].replace("'", '"'))
-    session = Session.objects.get(arm_id=args["arm_id"], session_id=args["session_id"])
+
+    try:
+        session_id = int(args["session_id"][1:])
+        session = Session.objects.get(arm_id=args["arm_id"], id=session_id)
+    except KeyError:
+        # Don't save log if no session_id is provided
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     # Refresh session status if final log is received
     try:
@@ -138,7 +145,7 @@ def log(request):
             continue
         # Field 'session' expects a Session object, so retrieve it based on 'session_id' from args
         if field.name == "session":
-            new_log_args[field.name] = Session.objects.get(session_id=args["session_id"])
+            new_log_args[field.name] = Session.objects.get(id=session_id)
             continue
         new_log_args[field.name] = request.data[field.name]
 
