@@ -18,7 +18,6 @@ EXPOSE 8000
 ENV PYTHONUNBUFFERED 1
 ENV MODE="local"
 ENV AWS_DEFAULT_REGION "eu-central-1"
-ENV PG_PASS=
 
 COPY sbc_server /sbc_server
 COPY --from=builder /client/build/static /sbc_server/static/main

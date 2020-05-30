@@ -20,12 +20,13 @@ services:
     depends_on:
       - redis
     environment:
-      - MIGRATE
+      - MIGRATE=$MIGRATE
       - MODE=$MODE
-      - PG_PASS=$PG_PASS
+    env_file:
+      - sbc_server/.env
 #  Uncomment for hot code reload
     volumes:
       - "./sbc_server/core:/sbc_server/core"
       - "./sbc_server/sbc_server:/sbc_server/sbc_server"
-      - "./sbc_server/.env:/sbc_server/.env"
-      - "~/.aws:/root/.aws"
+      # - "./sbc_server/.env:/sbc_server/.env"
+      - "/home/simon/.aws:/root/.aws"

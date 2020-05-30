@@ -8,15 +8,44 @@ The UI shows a list of all of the arms ever connected to the system, each of the
 It consists of a React front-end and a Django (Python) back-end. It uses Django Channels (WebSockets) for real-time bi-directional communication. Django Channels requires a Redis server as a back-end, it is included in the Docker Compose as a separate image. It uses a postgreSQL database deployed to AWS.
 
 ### Run SorterBot Control Panel locally
-1. Clone repository.
-1. Build Docker image:
+You can run SorterBot Control Panel in 3 modes: *local*, *aws-dev*, and *production*.
+- **Local**: No AWS resources are needed. ECS Manager functionality and S3 uploads are disabled. Postgres connection string and Django secret key are both retrieved from environment variables.
+- **aws-dev**: S3 uploads are enabled, but ECS Manager is disabled. An RDS PostgreSQL instance is used for database, it's connection string is retrieved from the SSM parameter store. Django secret key is loaded from the environment.
+- **production**: All functionality enabled, both postgres connection string and Django secret key are loaded from the SSM parameter store.
+
+1. Build Docker image
     ```
     docker build -t sorterbot_control .
     ```
-1. Run image with Docker Compose:
+1. Create a file named `.env` in the *sbc_server* folder, and set the same PostgreSQL connection string that you used for SorterBot Cloud under the key `PG_CONN`, and a long, random string under the key `DJANGO_SECRET`. The result should look similar to this example:
     ```
-    docker-compose up
+    PG_CONN=postgresql://postgres:mypassword@172.17.0.2:5432/postgres
+    DJANGO_SECRET=fJ2SmJNLsIDFXauoPIvKn1S3kDe6WVIdSrdiMsJq
     ```
+1. Run image with Docker Compose
+
+    Running `docker compose` will spin up two images, SorterBot Control Panel, and a redis image, which is used by Django Channels, Django's websockets implementation.
+
+    Django is running on port 8000 inside the container, you need to map that to an external port by setting it with the `EXT_PORT` environment variable. In *local* and *aws-dev* modes this should be 8000, in *production* mode, 80.
+
+    You can specify mode assigning one of the 3 values mentioned above to the environment variable `MODE`. 
+    
+    On the first run, you need to set a truthy value to `MIGRATE`, which will execute the Django migrations. On later runs, you can omit this. Later on, if you modify the database structure, you need to apply the migrations again.
+    ```
+    EXT_PORT=8000 MODE=[value] MIGRATE=1 docker-compose up
+    ```
+2. Start User Interface
+   
+    First `cd` to the *client* folder in the project root, then (only if you are running it for the first time), install the JavaScript dependencies:
+    ```
+    yarn
+    ```
+    After that, start the dev server with the following command:
+    ```
+    yarn start
+    ```
+    When the dev server started, you can access the UI in your browser under the following address: [http://localhost:3000](http://localhost:3000)
+
 
 ### Deploy SorterBot Control Panel to AWS
 Here you can find the instructions how to manually create the neccessary resources to deploy SorterBot Control Panel to AWS. Since this is a quite long list, the recommended way of deploying is by using the SorterBot Installer, which automates most of these steps.

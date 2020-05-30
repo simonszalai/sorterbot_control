@@ -24,7 +24,7 @@ if os.getenv("MODE") == "local":
     # Load PG_CONN from Environment Variable in local mode
     PG_CONN = os.getenv("PG_CONN")
 else:
-    # Load PG_CONN from Parameter Store in development and production mode
+    # Load PG_CONN from Parameter Store in aws-dev and production mode
     ssm = boto3.client('ssm')
     PG_CONN = ssm.get_parameter(Name='PG_CONN', WithDecryption=True)['Parameter']['Value']
 
@@ -34,7 +34,7 @@ if os.getenv("MODE") == "production":
     ssm = boto3.client('ssm')
     SECRET_KEY = ssm.get_parameter(Name='DJANGO_SECRET', WithDecryption=True)['Parameter']['Value']
 else:
-    # Load DJANGO_SECRET from Environment Variable in local and development mode
+    # Load DJANGO_SECRET from Environment Variable in local and aws-dev mode
     SECRET_KEY = os.getenv("DJANGO_SECRET")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
