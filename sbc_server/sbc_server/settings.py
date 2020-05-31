@@ -100,7 +100,7 @@ STATICFILES_DIRS = (
 )
 
 if os.getenv("MODE") == "production":
-    AWS_STORAGE_BUCKET_NAME = f'sorterbot-static-{ssm.get_parameter(Name='RESOURCE_SUFFIX', WithDecryption=True)['Parameter']['Value']}'
+    AWS_STORAGE_BUCKET_NAME = f"sorterbot-static-{ssm.get_parameter(Name='RESOURCE_SUFFIX', WithDecryption=True)['Parameter']['Value']}"
     AWS_DEFAULT_ACL = None
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
