@@ -22,6 +22,7 @@ services:
     environment:
       - MIGRATE=$MIGRATE
       - MODE=$MODE
+      - DEPLOY_REGION=$DEPLOY_REGION
     env_file:
       - sbc_server/.env
 #  Uncomment for hot code reload

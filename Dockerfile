@@ -17,7 +17,8 @@ RUN pip3 install -r requirements.txt
 EXPOSE 8000
 ENV PYTHONUNBUFFERED 1
 ENV MODE="local"
-ENV AWS_DEFAULT_REGION "eu-central-1"
+ENV FROM_DOCKER=1
+ENV DEPLOY_REGION=
 
 COPY sbc_server /sbc_server
 COPY --from=builder /client/build/static /sbc_server/static/main

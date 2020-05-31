@@ -19,19 +19,20 @@ from pathlib import Path
 # Load environment variables
 load_dotenv(dotenv_path=Path(__file__).parents[1].joinpath(".env"))
 
+session = boto3.Session(region_name=os.getenv("DEPLOY_REGION"))
+ssm = session.client('ssm')
+
 # Load PG_CONN
 if os.getenv("MODE") == "local":
     # Load PG_CONN from Environment Variable in local mode
     PG_CONN = os.getenv("PG_CONN")
 else:
     # Load PG_CONN from Parameter Store in aws-dev and production mode
-    ssm = boto3.client('ssm')
     PG_CONN = ssm.get_parameter(Name='PG_CONN', WithDecryption=True)['Parameter']['Value']
 
 # Load DJANGO_SECRET
 if os.getenv("MODE") == "production":
     # Load DJANGO_SECRET from Parameter Store in production mode
-    ssm = boto3.client('ssm')
     SECRET_KEY = ssm.get_parameter(Name='DJANGO_SECRET', WithDecryption=True)['Parameter']['Value']
 else:
     # Load DJANGO_SECRET from Environment Variable in local and aws-dev mode

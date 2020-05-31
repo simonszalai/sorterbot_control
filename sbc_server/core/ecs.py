@@ -8,7 +8,7 @@ from asgiref.sync import async_to_sync
 class ECSManager:
     def __init__(self):
         # Define Clients
-        session = boto3.Session()  # profile_name="maggie"
+        session = boto3.Session(region_name=os.getenv("DEPLOY_REGION"))
         self.ecs_client = session.client('ecs')
         self.ec2_client = session.client('ec2')
 
@@ -21,9 +21,9 @@ class ECSManager:
         clusters = self.ecs_client.describe_clusters(clusters=clusterArns, include=["TAGS"])["clusters"]
 
         try:
-            self.cluster = next(cluster for cluster in clusters if {"key": "SBID", "value": "SBCluster"} in cluster["tags"])["clusterArn"]
+            self.cluster = next(cluster for cluster in clusters if "SorterBotResource" in [tag["key"] for tag in cluster["tags"]])["clusterArn"]
         except StopIteration:
-            raise Exception('No ECS Cluster was found with the following tag: {"key": "SBID", "value": "SBCluster"}')
+            raise Exception('No ECS Cluster was found with the following tag key "SorterBotResource"')
 
         # Retrieve Service of given Cluster by index (not by tag, because it needs the new ARN format enabled account wide, which would increase complexity)
         self.service = self.ecs_client.list_services(cluster=self.cluster)["serviceArns"][0]
