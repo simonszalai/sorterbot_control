@@ -19,7 +19,7 @@ from .serializers import ArmSerializer, SessionSerializer, UISerializer
 from .ecs import ECSManager
 
 
-if os.getenv("MODE") == "production" and os.getenv("FROM_DOCKER") == 1:
+if os.getenv("MODE") == "production" and os.getenv("FROM_DOCKER") == "1":
     ecsManager = ECSManager()
 
 

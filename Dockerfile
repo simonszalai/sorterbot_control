@@ -1,6 +1,7 @@
 FROM node as builder
 
-ENV PUBLIC_URL=https://sorterbot-static-wwccinrg.s3.eu-central-1.amazonaws.com
+ARG RESOURCE_SUFFIX_ARG
+ENV PUBLIC_URL=https://sorterbot-static-$RESOURCE_SUFFIX_ARG.s3.eu-central-1.amazonaws.com
 RUN mkdir /client
 WORKDIR /client
 COPY client /client
@@ -35,3 +36,4 @@ RUN chmod +x /startup.sh
 RUN MODE=$MODE_ARG python3 /sbc_server/manage.py collectstatic --noinput
 
 CMD /startup.sh
+
