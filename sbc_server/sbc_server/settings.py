@@ -19,7 +19,6 @@ from pathlib import Path
 # Load environment variables
 load_dotenv(dotenv_path=Path(__file__).parents[1].joinpath(".env"))
 
-# Create boto3 client
 session = boto3.Session(region_name=os.getenv("DEPLOY_REGION"))
 ssm = session.client('ssm')
 
@@ -101,10 +100,8 @@ STATICFILES_DIRS = (
 )
 
 if os.getenv("MODE") == "production":
-    session = boto3.Session(region_name=os.getenv("DEPLOY_REGION"))
-    ssm = session.client('ssm')
-    AWS_STORAGE_BUCKET_NAME = f'sorterbot-static-{ssm.get_parameter(Name="RESOURCE_SUFFIX")["Parameter"]["Value"]}'
-    AWS_DEFAULT_ACL = None
+    AWS_STORAGE_BUCKET_NAME = f"sorterbot-static-{ssm.get_parameter(Name='RESOURCE_SUFFIX', WithDecryption=True)['Parameter']['Value']}"
+    AWS_DEFAULT_ACL = 'public-read'
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
     AWS_LOCATION = 'static'
