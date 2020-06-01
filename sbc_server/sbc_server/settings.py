@@ -19,19 +19,21 @@ from pathlib import Path
 # Load environment variables
 load_dotenv(dotenv_path=Path(__file__).parents[1].joinpath(".env"))
 
+# Create boto3 client
+session = boto3.Session(region_name=os.getenv("DEPLOY_REGION"))
+ssm = session.client('ssm')
+
 # Load PG_CONN
 if os.getenv("MODE") == "local":
     # Load PG_CONN from Environment Variable in local mode
     PG_CONN = os.getenv("PG_CONN")
 else:
     # Load PG_CONN from Parameter Store in aws-dev and production mode
-    ssm = boto3.client('ssm')
     PG_CONN = ssm.get_parameter(Name='PG_CONN', WithDecryption=True)['Parameter']['Value']
 
 # Load DJANGO_SECRET
 if os.getenv("MODE") == "production":
     # Load DJANGO_SECRET from Parameter Store in production mode
-    ssm = boto3.client('ssm')
     SECRET_KEY = ssm.get_parameter(Name='DJANGO_SECRET', WithDecryption=True)['Parameter']['Value']
 else:
     # Load DJANGO_SECRET from Environment Variable in local and aws-dev mode
@@ -99,7 +101,9 @@ STATICFILES_DIRS = (
 )
 
 if os.getenv("MODE") == "production":
-    AWS_STORAGE_BUCKET_NAME = 'sorterbot-static'
+    session = boto3.Session(region_name=os.getenv("DEPLOY_REGION"))
+    ssm = session.client('ssm')
+    AWS_STORAGE_BUCKET_NAME = f'sorterbot-static-{ssm.get_parameter(Name="RESOURCE_SUFFIX")["Parameter"]["Value"]}'
     AWS_DEFAULT_ACL = None
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}

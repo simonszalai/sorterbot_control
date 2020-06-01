@@ -1,11 +1,13 @@
+import os
 import boto3
 
 
 class S3:
     def __init__(self):
         # Get sorterbot bucket name
-        self.ssm = boto3.client("ssm")
-        self.bucket_name = self.ssm.get_parameter(Name="SORTERBOT_BUCKET_NAME")["Parameter"]["Value"]
+        session = boto3.Session(region_name=os.getenv("DEPLOY_REGION"))
+        self.ssm = session.client('ssm')
+        self.bucket_name = f'sorterbot-{self.ssm.get_parameter(Name="RESOURCE_SUFFIX")["Parameter"]["Value"]}'
 
         # Create temporary client
         self.s3_client = boto3.client("s3")
