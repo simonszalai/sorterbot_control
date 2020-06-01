@@ -15,13 +15,15 @@ WORKDIR /sbc_server
 COPY sbc_server/requirements.txt /sbc_server/requirements.txt
 RUN pip3 install -r requirements.txt
 
+EXPOSE 8000
+
+ARG MODE_ARG
 ARG DEPLOY_REGION_ARG
 
-EXPOSE 8000
-ENV PYTHONUNBUFFERED 1
-ENV MODE="local"
-ENV FROM_DOCKER=1
+ENV MODE=$MODE_ARG
 ENV DEPLOY_REGION=$DEPLOY_REGION_ARG
+ENV PYTHONUNBUFFERED 1
+ENV FROM_DOCKER=1
 
 COPY sbc_server /sbc_server
 COPY --from=builder /client/build/static /sbc_server/static
@@ -30,6 +32,6 @@ COPY --from=builder /client/build/favicon.ico /sbc_server/static/favicon.ico
 ADD sbc_server/startup.sh /startup.sh
 RUN chmod +x /startup.sh
 
-RUN MODE=production python3 /sbc_server/manage.py collectstatic --noinput
+RUN MODE=$MODE_ARG python3 /sbc_server/manage.py collectstatic --noinput
 
 CMD /startup.sh
