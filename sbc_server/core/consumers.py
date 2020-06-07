@@ -22,7 +22,7 @@ from .s3 import S3
 
 db = DB()
 
-if os.getenv("MODE") == "production" and os.getenv("FROM_DOCKER") == 1:
+if os.getenv("MODE") == "production" and os.getenv("FROM_DOCKER") == "1":
     ecsManager = ECSManager()
 
 if os.getenv("MODE") != "local":

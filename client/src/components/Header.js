@@ -64,7 +64,7 @@ const CloudStatusComponent = (props) => {
       return <LoadingComponent statusText="Loading SorterBot status..." />
     default:
       if (props.cloudStatus) {
-        return LocalComponent
+        return process.env.NODE_ENV === 'development' ? LocalComponent : OnComponent
       } else {
         return OffComponent
       }
