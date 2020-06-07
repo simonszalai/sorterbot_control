@@ -1,3 +1,8 @@
+"""
+Views and ViewSets to define REST endpoints.
+
+"""
+
 import os
 import json
 import socket
@@ -26,6 +31,11 @@ if os.getenv("MODE") == "production" and os.getenv("FROM_DOCKER") == 1:
 @login_required
 @require_http_methods(["GET"])
 def index(request):
+    """
+    Root endpoint to serve the frontend's HTML template.
+
+    """
+
     try:
         with open(os.path.join(settings.BASE_DIR, 'templates', 'main.html')) as f:
             return HttpResponse(f.read())
@@ -40,68 +50,82 @@ def index(request):
         )
 
 
-@csrf_exempt
-@api_view(["POST"])
-def get_cloud_ip(request):
-    arm_id = json.loads(request.body)["arm_id"]
+# @csrf_exempt
+# @api_view(["POST"])
+# def get_cloud_ip(request):
+#     arm_id = json.loads(request.body)["arm_id"]
 
-    # Add arm to DB is this is the first time checking in, otherwise update last_online timestamp
-    new_arm = Arm(arm_id=arm_id, last_online=datetime.now())
-    new_arm.save()
+#     # Add arm to DB is this is the first time checking in, otherwise update last_online timestamp
+#     new_arm = Arm(arm_id=arm_id, last_online=datetime.now())
+#     new_arm.save()
 
-    # Get SorterBot Cloud status from DB
-    cloud_status = ecsManager.status() if os.getenv("MODE") == "production" else "Local Mode"
+#     # Get SorterBot Cloud status from DB
+#     cloud_status = ecsManager.status() if os.getenv("MODE") == "production" else "Local Mode"
 
-    # Check if status is a valid IP by trying to parse
-    status_res = False
-    try:
-        socket.inet_aton(cloud_status)
-        status_res = cloud_status
-    except socket.error:
-        pass
+#     # Check if status is a valid IP by trying to parse
+#     status_res = False
+#     try:
+#         socket.inet_aton(cloud_status)
+#         status_res = cloud_status
+#     except socket.error:
+#         pass
 
-    return Response({"cloud_ip": status_res}, status=status.HTTP_200_OK)
+#     return Response({"cloud_ip": status_res}, status=status.HTTP_200_OK)
 
 
-@csrf_exempt
-@api_view(["POST"])
-def send_connection_status(request):
-    # Retrieve payload from request
-    arm_id = json.loads(request.body)["arm_id"]
-    cloud_connect_success = json.loads(request.body)["cloud_connect_success"]
+# @csrf_exempt
+# @api_view(["POST"])
+# def send_connection_status(request):
+#     # Retrieve payload from request
+#     arm_id = json.loads(request.body)["arm_id"]
+#     cloud_connect_success = json.loads(request.body)["cloud_connect_success"]
 
-    # Send payload to frontend though channels
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)("default", {
-        "type": "push.arm.status",
-        "arm_id": arm_id,
-        "cloud_connect_success": cloud_connect_success
-    })
+#     # Send payload to frontend though channels
+#     channel_layer = get_channel_layer()
+#     async_to_sync(channel_layer.group_send)("default", {
+#         "type": "push.arm.status",
+#         "arm_id": arm_id,
+#         "cloud_connect_success": cloud_connect_success
+#     })
 
-    # Get current UI object and convert it to dict
-    ui_objects = UI.objects.all()
-    if len(ui_objects) > 0:
-        current_UI = model_to_dict(ui_objects[0])
-    else:
-        # If row is empty, create one with default value
-        UI(arms_to_start="[]").save()
-        current_UI = model_to_dict(UI.objects.all()[0])
+#     # Get current UI object and convert it to dict
+#     ui_objects = UI.objects.all()
+#     if len(ui_objects) > 0:
+#         current_UI = model_to_dict(ui_objects[0])
+#     else:
+#         # If row is empty, create one with default value
+#         UI(arms_to_start="[]").save()
+#         current_UI = model_to_dict(UI.objects.all()[0])
 
-    # Remove arm id from list of arms to be started after command was sent back
-    arms_to_start = json.loads(current_UI["arms_to_start"])
-    try:
-        arms_to_start.remove(arm_id)
-    except ValueError:
-        pass
-    UI(arms_to_start=json.dumps(arms_to_start)).save()
+#     # Remove arm id from list of arms to be started after command was sent back
+#     arms_to_start = json.loads(current_UI["arms_to_start"])
+#     try:
+#         arms_to_start.remove(arm_id)
+#     except ValueError:
+#         pass
+#     UI(arms_to_start=json.dumps(arms_to_start)).save()
 
-    # Send back command to start (or not) a new session
-    return Response({"should_start_session": arm_id in current_UI["arms_to_start"]}, status=status.HTTP_200_OK)
+#     # Send back command to start (or not) a new session
+#     return Response({"should_start_session": arm_id in current_UI["arms_to_start"]}, status=status.HTTP_200_OK)
 
 
 @csrf_exempt
 @api_view(["POST"])
 def log(request):
+    """
+    Define an enpoint for the logs to be POSTed by Python logger's HTTP handlers.
+
+    Parameters
+    ----------
+    request : JSON string
+        Request containing the log entry.
+
+    Returns
+    -------
+    response : HTTP Response
+        Result of saving the log.
+    """
+
     is_final_log = False
     new_log_args = {}
 
@@ -173,12 +197,17 @@ def log(request):
 
 
 class ArmViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to manage arms with REST requests.
+
+    """
+
     queryset = Arm.objects.all()
     serializer_class = ArmSerializer
 
     def create(self, request):
         """
-        Explicitly provide primary key (id) so the entry is updated, instead of a new being added if arm already exists in db
+        Explicitly provide primary key (id) so the entry is updated, instead of a new being added if arm already exists in db.
 
         """
 
@@ -188,10 +217,20 @@ class ArmViewSet(viewsets.ModelViewSet):
 
 
 class SessionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to manage sessions with REST requests.
+
+    """
+
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
 
     def create(self, request):
+        """
+        Override create to insert appropriate entities to the database instead of their string representations.
+
+        """
+
         try:
             # Convert timestamp to datetime
             request.data["session_started"] = datetime.fromtimestamp(request.data["session_started"])
@@ -209,6 +248,11 @@ class SessionViewSet(viewsets.ModelViewSet):
 
 
 class UIViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to manage UI variables with REST requests.
+
+    """
+
     queryset = UI.objects.all()
     serializer_class = UISerializer
 

@@ -1,3 +1,8 @@
+"""
+Define routes for the WebSockets.
+
+"""
+
 from django.urls import re_path
 
 from . import consumers

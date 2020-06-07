@@ -1,3 +1,8 @@
+"""
+Root level routing, just pass the router of the core app.
+
+"""
+
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 import core.routing

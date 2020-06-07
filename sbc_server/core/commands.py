@@ -1,3 +1,8 @@
+"""
+Actions to be used in consumers.py file.
+
+"""
+
 import os
 import json
 import socket
@@ -15,12 +20,22 @@ if os.getenv("MODE") == "production" and os.getenv("FROM_DOCKER") == 1:
 
 
 def register_arm(arm_id):
-    # Add arm to DB is this is the first time checking in, otherwise update last_online timestamp
+    """
+    Add arm to DB is this is the first time checking in, otherwise update last_online timestamp.
+
+    """
+
     new_arm = Arm(arm_id=arm_id, last_online=datetime.now())
     new_arm.save()
 
 
 def get_cloud_ip():
+    """
+    In production mode, retrieve the IP address of the Cloud service and check if it's a valid IP. If not, return 0.
+    In local mode, just return 'Local Mode'.
+
+    """
+
     # Get SorterBot Cloud status from DB
     cloud_status = ecsManager.status() if os.getenv("MODE") == "production" else "Local Mode"
 
@@ -36,7 +51,11 @@ def get_cloud_ip():
 
 
 def push_arm_status(arm_id, cloud_connect_success):
-    # Send payload to frontend though channels
+    """
+    Send arm status to frontend though Django channels.
+
+    """
+
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("default", {
         "type": "push.arm.status",
@@ -46,6 +65,11 @@ def push_arm_status(arm_id, cloud_connect_success):
 
 
 def should_start_arm(arm_id):
+    """
+    Check in database if the current arm_id is in the list of arms to be started. If yes, remove it and return 1, otherwise return 0.
+
+    """
+
     # Get current UI object and convert it to dict
     ui_objects = UI.objects.all()
     if len(ui_objects) > 0:

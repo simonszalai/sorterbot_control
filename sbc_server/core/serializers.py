@@ -1,3 +1,8 @@
+"""
+Serializers for the Django models, nothing irregular here.
+
+"""
+
 from rest_framework import serializers
 from .models import Arm, Session, UI, Log
 

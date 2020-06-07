@@ -1,5 +1,10 @@
+"""
+Register ViewSets to handle specific paths, and functions in views.py to handle REST endpoints.
+
+"""
+
 from django.urls import path
-from django.urls import include, path
+from django.urls import include
 from rest_framework import routers
 
 from . import views

@@ -1,3 +1,8 @@
+"""
+Define Django models for easier database manipulations.
+
+"""
+
 from django.db import models
 from channels.layers import get_channel_layer
 from django.forms.models import model_to_dict
@@ -5,6 +10,11 @@ from asgiref.sync import async_to_sync
 
 
 class Arm(models.Model):
+    """
+    Define an Arm. Override the save method to update the list of arms on the frontend, when a new arm is added.
+
+    """
+
     arm_id = models.CharField(max_length=20, primary_key=True)
     last_online = models.DateTimeField()
 
@@ -15,6 +25,11 @@ class Arm(models.Model):
 
 
 class Session(models.Model):
+    """
+    Define a Session. Override the save method to update the list of session on the frontend, when a new session is added.
+
+    """
+
     arm = models.ForeignKey(Arm, on_delete=models.CASCADE)
     session_started = models.DateTimeField()
     status = models.CharField(max_length=20, blank=True)
@@ -31,6 +46,16 @@ class Session(models.Model):
 
 
 class UI(models.Model):
+    """
+    Define a special class, UI, to store temporary variables that are set on the frontend, used on the backend. Since these values can have only one current value,
+    there is always a single row, which is ensured by the override of the save method.
+
+    arms_to_start: A JSON array of arm_id's that has to be started. An entry is added after the start button on the frontend is clicked,
+    and is removed, when an arm which has to be started checks in with a ready status.
+    open_logs: log_type corresponding to the log type that is currently shown on the frontend. It is needed to avoid needlessly pushing every log.
+
+    """
+
     arms_to_start = models.TextField(default="[]")
     open_logs = models.CharField(max_length=40, default="")
 
@@ -56,6 +81,11 @@ class UI(models.Model):
 
 
 class Log(models.Model):
+    """
+    Define a log entry. Override the save method to push the new log entries to the frontend, when their type is the one opened.
+
+    """
+
     arm = models.ForeignKey(Arm, on_delete=models.CASCADE)
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     log_type = models.CharField(max_length=40)
