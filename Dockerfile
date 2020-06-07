@@ -33,7 +33,7 @@ COPY --from=builder /client/build/favicon.ico /sbc_server/static/favicon.ico
 ADD sbc_server/startup.sh /startup.sh
 RUN chmod +x /startup.sh
 
-RUN MODE=$MODE_ARG python3 /sbc_server/manage.py collectstatic --noinput
+RUN if [ $MODE_ARG = "production" ] ; then MODE=$MODE_ARG python3 /sbc_server/manage.py collectstatic --noinput ; fi
 
 CMD /startup.sh
 

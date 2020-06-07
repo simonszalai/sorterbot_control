@@ -15,7 +15,11 @@ You can run SorterBot Control Panel in 3 modes: *local*, *aws-dev*, and *product
 
 1. Build Docker image
     ```
-    docker build -t sorterbot_control .
+    docker build --build-arg MODE_ARG=local -t sorterbot_control .
+    docker build \
+        --build-arg MODE_ARG=local \
+        --build-arg DEPLOY_REGION_ARG=eu-central-1 \
+        -t sorterbot_control:latest .
     ```
 1. Create a file named `.env` in the *sbc_server* folder, and set the same PostgreSQL connection string that you used for SorterBot Cloud under the key `PG_CONN`, and a long, random string under the key `DJANGO_SECRET`. The result should look similar to this example:
     ```
