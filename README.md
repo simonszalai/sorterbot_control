@@ -3,6 +3,9 @@
 
 Control Panel for the SorterBot project. It provides real-time monitoring and control capabilities to the robot arms connected to the system. This application does not do any computationally heavy tasks, so it can conveniently run on a t2.micro EC2 instance which is included in the AWS Free Tier. The arms only need to be configured to connect to the Control Panel, which can retreive the IP address of the Cloud service and send it to the arms.
 
+![Alt SorterBot Control Panel UI](./media/ui_screenshot.png)
+*<p align="center">Figure 1: Screenshot of the Control Panel UI</p>*
+
 ### Usage
 The UI shows a list of all of the arms ever connected to the system, each of them has a status LED, which blinks orange if the arm is online, but cannot connect to the SorterBot Cloud, while it blinks green if the arm is connected to the cloud service and ready to start a session. A session can be started by pressing the black play button on the selected arm. After a session is started, it will show up in the second column, where the logs will show up real-time as the arm proceeds with the session. The arm takes a set of pictures before and after the operations, which are stiched together and can be displayed by clicking the appropriate buttons within a session.
 
