@@ -1,0 +1,378 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SorterBot Control Panel Documentation &mdash; SorterBot Control Panel  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+        <script src="static/jquery.js"></script>
+        <script src="static/underscore.js"></script>
+        <script src="static/doctools.js"></script>
+        <script src="static/language_data.js"></script>
+    
+    <script type="text/javascript" src="static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home"> SorterBot Control Panel
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">SorterBot Control Panel Documentation</a></li>
+<li><a class="reference internal" href="#core-package">core package</a><ul>
+<li><a class="reference internal" href="#core-commands-module">core.commands module</a></li>
+<li><a class="reference internal" href="#core-consumers-module">core.consumers module</a></li>
+<li><a class="reference internal" href="#core-database-module">core.database module</a></li>
+<li><a class="reference internal" href="#module-core.ecs">core.ecs module</a></li>
+<li><a class="reference internal" href="#core-models-module">core.models module</a></li>
+<li><a class="reference internal" href="#core-routing-module">core.routing module</a></li>
+<li><a class="reference internal" href="#module-core.s3">core.s3 module</a></li>
+<li><a class="reference internal" href="#core-serializers-module">core.serializers module</a></li>
+<li><a class="reference internal" href="#core-urls-module">core.urls module</a></li>
+<li><a class="reference internal" href="#core-views-module">core.views module</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-manage">manage module</a></li>
+<li><a class="reference internal" href="#sbc-server-package">sbc_server package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#sbc-server-asgi-module">sbc_server.asgi module</a></li>
+<li><a class="reference internal" href="#sbc-server-routing-module">sbc_server.routing module</a></li>
+<li><a class="reference internal" href="#module-sbc_server.settings">sbc_server.settings module</a></li>
+<li><a class="reference internal" href="#sbc-server-urls-module">sbc_server.urls module</a></li>
+<li><a class="reference internal" href="#module-sbc_server.wsgi">sbc_server.wsgi module</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">SorterBot Control Panel</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>SorterBot Control Panel Documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="sorterbot-control-panel-documentation">
+<h1>SorterBot Control Panel Documentation<a class="headerlink" href="#sorterbot-control-panel-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="core-package">
+<h1>core package<a class="headerlink" href="#core-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="core-commands-module">
+<h2>core.commands module<a class="headerlink" href="#core-commands-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="core-consumers-module">
+<h2>core.consumers module<a class="headerlink" href="#core-consumers-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="core-database-module">
+<h2>core.database module<a class="headerlink" href="#core-database-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-core.ecs">
+<span id="core-ecs-module"></span><h2>core.ecs module<a class="headerlink" href="#module-core.ecs" title="Permalink to this headline">¶</a></h2>
+<p>Functions to retrieve status, start or stop ECS tasks.</p>
+<dl class="py class">
+<dt id="core.ecs.ECSManager">
+<em class="property">class </em><code class="sig-prename descclassname">core.ecs.</code><code class="sig-name descname">ECSManager</code><a class="headerlink" href="#core.ecs.ECSManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to organize functions related to the ECS cluster. On init, neccessary AWS clients are initiated, ECS cluster looked up by tag,
+then initial status pushed to frontend.</p>
+<dl class="py method">
+<dt id="core.ecs.ECSManager.get_public_ip">
+<code class="sig-name descname">get_public_ip</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">taskArns</span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.ecs.ECSManager.get_public_ip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the public IP of the running task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>public_ip</strong> – Public IP of the running task.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="core.ecs.ECSManager.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#core.ecs.ECSManager.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts Cloud service by increasing desired_count to 1. After that, it waits until the task is running, then pushes a status update.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="core.ecs.ECSManager.status">
+<code class="sig-name descname">status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#core.ecs.ECSManager.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines ECS task’s status.
+- If there are no tasks in the cluster, and desired count is 0, the status is ‘off’.
+- If there are no tasks, but the desired count is not 0, status is ‘startLoading’.
+- If there is at least 1 task, but the desired count is 0, status is ‘stopLoading’.
+- If there is at least 1 task, and it’s status is not RUNNING, the status is ‘startLoading’.
+- If there is at least 1 task, and it’s status is RUNNING, the status is it’s public IP address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>status</strong> – The status of the task according to the rules described above.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="core.ecs.ECSManager.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#core.ecs.ECSManager.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops Cloud service by decreasing desired_count to 0. After that, it waits until the task is stopped, then pushes a status update.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="core-models-module">
+<h2>core.models module<a class="headerlink" href="#core-models-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="core-routing-module">
+<h2>core.routing module<a class="headerlink" href="#core-routing-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-core.s3">
+<span id="core-s3-module"></span><h2>core.s3 module<a class="headerlink" href="#module-core.s3" title="Permalink to this headline">¶</a></h2>
+<p>S3 client to get signed URLs for the stitched images to be used as img src on the frontend.</p>
+<dl class="py class">
+<dt id="core.s3.S3">
+<em class="property">class </em><code class="sig-prename descclassname">core.s3.</code><code class="sig-name descname">S3</code><a class="headerlink" href="#core.s3.S3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Since the S3 buckets names has to be globally unique, to avoid clashes, they contain a random string. That string is generated deploy time and saved
+as an SSM parameter. It is retrieved here.</p>
+<dl class="py method">
+<dt id="core.s3.S3.get_signed_url">
+<code class="sig-name descname">get_signed_url</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s3_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#core.s3.S3.get_signed_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a signed URL for an S3 path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>s3_path</strong> (<em>str</em>) – Path of the S3 object to which a signed URL has to be retrieved.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>presigned_url</strong> – Presigned URL that can be used as img src on the frontend.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="core-serializers-module">
+<h2>core.serializers module<a class="headerlink" href="#core-serializers-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="core-urls-module">
+<h2>core.urls module<a class="headerlink" href="#core-urls-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="core-views-module">
+<h2>core.views module<a class="headerlink" href="#core-views-module" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+<div class="section" id="module-manage">
+<span id="manage-module"></span><h1>manage module<a class="headerlink" href="#module-manage" title="Permalink to this headline">¶</a></h1>
+<p>Django’s command-line utility for administrative tasks.</p>
+<dl class="py function">
+<dt id="manage.main">
+<code class="sig-prename descclassname">manage.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#manage.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="sbc-server-package">
+<h1>sbc_server package<a class="headerlink" href="#sbc-server-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="sbc-server-asgi-module">
+<h2>sbc_server.asgi module<a class="headerlink" href="#sbc-server-asgi-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="sbc-server-routing-module">
+<h2>sbc_server.routing module<a class="headerlink" href="#sbc-server-routing-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-sbc_server.settings">
+<span id="sbc-server-settings-module"></span><h2>sbc_server.settings module<a class="headerlink" href="#module-sbc_server.settings" title="Permalink to this headline">¶</a></h2>
+<p>Django settings for sbc_server project.</p>
+<p>Generated by ‘django-admin startproject’ using Django 3.0.5.</p>
+<p>For more information on this file, see
+<a class="reference external" href="https://docs.djangoproject.com/en/3.0/topics/settings/">https://docs.djangoproject.com/en/3.0/topics/settings/</a></p>
+<p>For the full list of settings and their values, see
+<a class="reference external" href="https://docs.djangoproject.com/en/3.0/ref/settings/">https://docs.djangoproject.com/en/3.0/ref/settings/</a></p>
+</div>
+<div class="section" id="sbc-server-urls-module">
+<h2>sbc_server.urls module<a class="headerlink" href="#sbc-server-urls-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-sbc_server.wsgi">
+<span id="sbc-server-wsgi-module"></span><h2>sbc_server.wsgi module<a class="headerlink" href="#module-sbc_server.wsgi" title="Permalink to this headline">¶</a></h2>
+<p>WSGI config for sbc_server project.</p>
+<p>It exposes the WSGI callable as a module-level variable named <code class="docutils literal notranslate"><span class="pre">application</span></code>.</p>
+<p>For more information on this file, see
+<a class="reference external" href="https://docs.djangoproject.com/en/3.0/howto/deployment/wsgi/">https://docs.djangoproject.com/en/3.0/howto/deployment/wsgi/</a></p>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Simon Szalai
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

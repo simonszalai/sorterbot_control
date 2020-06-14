@@ -1,5 +1,6 @@
 """
 A class to organize direct database manipulations, used by WebSocket message handlers.
+
 """
 
 from django.forms.models import model_to_dict
@@ -9,7 +10,9 @@ from .models import Arm, Session, Log
 class DB:
     """
     A class to organize direct database manipulations.
+
     """
+
     def get_arms(self):
         """
         Retrieve a list of registered arms ordered by arm_id.
